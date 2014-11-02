@@ -35,5 +35,11 @@ namespace ProcessorMarkdown
         {
             Test("Hello, World!\n\nMy name is Masha.", "<p>Hello, World!</p><p>My name is Masha.</p>");
         }
+
+        [Test]
+        public void return_lines_with_tag_em_for_input_text_contains_underscore()
+        {
+            Test("Hello, World!\n\nMy name is _Masha_.", "<p>Hello, World!</p><p>My name is <em>Masha</em></p>");
+        }
     }
 }
