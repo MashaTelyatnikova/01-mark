@@ -14,6 +14,7 @@ namespace ProcessorMarkdown
             var curWord = "";
             var state = 0;
             var pos = 0;
+            
             while (pos != line.Length)
             {
                 var ch = line[pos];
@@ -41,14 +42,10 @@ namespace ProcessorMarkdown
                         }
                         else
                         {
-                            state = 2;
+                            result += string.Format("<em>{0}</em>", curWord);
+                            curWord = "";
+                            state = 0;
                         }
-                        break;
-                    }
-                    case 2:
-                    {
-                        result += string.Format("<em>{0}</em>", curWord);
-                        curWord = "";
                         break;
                     }
                 }

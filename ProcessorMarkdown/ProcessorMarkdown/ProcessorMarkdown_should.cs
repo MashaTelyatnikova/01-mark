@@ -39,7 +39,13 @@ namespace ProcessorMarkdown
         [Test]
         public void return_lines_with_tag_em_for_input_text_contains_underscore()
         {
-            Test("Hello, World!\n\nMy name is _Masha_.", "<p>Hello, World!</p><p>My name is <em>Masha</em></p>");
+            Test("Hello, World!\n\nMy name is _Masha_.", "<p>Hello, World!</p><p>My name is <em>Masha</em>.</p>");
+        }
+
+        [Test]
+        public void return_initial_paragraph_that_contains_one_underscore()
+        {
+            Test("Hello, World!\n\nMy name is _Masha.", "<p>Hello, World!</p><p>My name is _Masha.</p>");
         }
     }
 }
