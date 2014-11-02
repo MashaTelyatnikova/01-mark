@@ -34,7 +34,7 @@ namespace ProcessorMarkdown
         {
             var processor = new ProcessorMarkdown("Hello, World!\n\nMy name is Masha.");
             var actualResult = processor.GetResultOfProcessing();
-            var expectedResult = "<p>Hello, World!</p><p>My name is Masha</p>";
+            var expectedResult = "<p>Hello, World!</p><p>My name is Masha.</p>";
 
             Assert.That(actualResult, Is.EqualTo(expectedResult));
         }
