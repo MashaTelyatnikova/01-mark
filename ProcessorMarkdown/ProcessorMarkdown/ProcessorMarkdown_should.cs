@@ -59,5 +59,11 @@ namespace ProcessorMarkdown
         {
             Test("Hello, \\_World!\\_\n\nMy _name \\_is\\_ Masha_.", "<p>Hello, _World!_</p><p>My <em>name _is_ Masha</em>.</p>");
         }
+
+        [Test]
+        public void return_correct_conversion_special_characters()
+        {
+            Test("<p>Masha</p> \"Hello!\" ©M", "<p>&lt;p&gt;Masha&lt;/p&gt; &quot;Hello!&quot; &copy;M</p>");
+        }
     }
 }
