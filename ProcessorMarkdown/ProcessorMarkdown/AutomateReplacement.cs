@@ -80,22 +80,23 @@ namespace ProcessorMarkdown
                     }
                 case States.OpeningUnderscore:
                     {
-                        if (!typeCurrentChar.Equals(TypesCharacters.Undercsore))
-                        {
-                            selectedWord.Append(currentChar);
-                            result.Append(currentChar);
-                        }
-                        else if (typeCurrentChar.Equals(TypesCharacters.Slash))
+                        if (typeCurrentChar.Equals(TypesCharacters.Slash))
                         {
                             result.Append(currentChar);
                             selectedWord.Append(currentChar);
                             currentState = States.ScreeningInsideSelection;
+                        }
+                        else if (!typeCurrentChar.Equals(TypesCharacters.Undercsore))
+                        {
+                            selectedWord.Append(currentChar);
+                            result.Append(currentChar);
                         }
                         else
                         {
                             WriteSelectedWordWithTag("em");
                             selectedWord.Clear();
                             currentState = States.Initial;
+
                         }
                         break;
                     }
