@@ -10,6 +10,13 @@ namespace ProcessorMarkdown
     [TestFixture]
     public class ProcessorMarkdown_should
     {
+        [Test]
+        public void should_return_empty_response_for_empty_input()
+        {
+            var processor = new ProcessorMarkdown("");
+            var actualResult = processor.GetResultOfProcessing();
 
+            Assert.That(actualResult, Is.Empty);
+        }
     }
 }
