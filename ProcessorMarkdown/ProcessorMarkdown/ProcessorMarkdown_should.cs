@@ -48,5 +48,10 @@ namespace ProcessorMarkdown
             Test("Hello, World!\n\nMy name is _Masha.", "<p>Hello, World!</p><p>My name is _Masha.</p>");
         }
 
+        [Test]
+        public void return_correctly_screened_underscore()
+        {
+            Test("Hello, \\_World!\\_", "<p>Hello, _World!_</p>");
+        }
     }
 }
