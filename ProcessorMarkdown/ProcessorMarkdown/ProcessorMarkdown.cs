@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ProcessorMarkdown
@@ -18,7 +19,9 @@ namespace ProcessorMarkdown
         {
             if (string.IsNullOrEmpty(textMarkdown)) return string.Empty;
 
-            return string.Format("<p>{0}</p>", textMarkdown);
+            var paragraphs = Regex.Split(textMarkdown, @"\n\n").ToList();
+
+            return paragraphs.Aggregate("", (current, paragraph) => current + string.Format("<p>{0}</p>", paragraph));
         }
     }
 }
