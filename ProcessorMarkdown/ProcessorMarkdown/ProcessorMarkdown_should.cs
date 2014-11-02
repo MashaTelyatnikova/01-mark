@@ -28,5 +28,15 @@ namespace ProcessorMarkdown
 
             Assert.That(actualResult, Is.EqualTo(expectedResult));
         }
+
+        [Test]
+        public void return_few_paragraphs_for_simple_text()
+        {
+            var processor = new ProcessorMarkdown("Hello, World!\n\nMy name is Masha.");
+            var actualResult = processor.GetResultOfProcessing();
+            var expectedResult = "<p>Hello, World!</p><p>My name is Masha</p>";
+
+            Assert.That(actualResult, Is.EqualTo(expectedResult));
+        }
     }
 }
