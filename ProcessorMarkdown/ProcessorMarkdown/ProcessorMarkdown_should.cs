@@ -47,5 +47,11 @@ namespace ProcessorMarkdown
         {
             Test("Hello, World!\n\nMy name is _Masha.", "<p>Hello, World!</p><p>My name is _Masha.</p>");
         }
+
+        [Test]
+        public void return_initial_same_paragraphs_that_contains_underscores()
+        {
+            Test("Hello__, _World_!\n\nMy name is _Masha.", "<p>Hello<em></em>, <em>World</em>!</p><p>My name is _Masha.</p>");
+        }
     }
 }
