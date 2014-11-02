@@ -17,7 +17,8 @@ namespace ProcessorMarkdown
         public string GetResultOfProcessing()
         {
             if (string.IsNullOrEmpty(textMarkdown)) return string.Empty;
-            throw new NotImplementedException();
+
+            return string.Format("<p>{0}</p>", textMarkdown);
         }
     }
 }
