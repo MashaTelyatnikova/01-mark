@@ -33,7 +33,7 @@ namespace ProcessorMarkdown
         [Test]
         public void return_few_paragraphs_for_simple_text()
         {
-            Test("Hello, World!\n\nMy name is Masha.", "<p>Hello, World!</p><p>My name is Masha.</p>");
+            Test("Hello, World!\n   \nMy name is Masha.", "<p>Hello, World!</p><p>My name is Masha.</p>");
         }
 
         [Test]

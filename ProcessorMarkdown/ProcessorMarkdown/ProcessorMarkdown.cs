@@ -16,7 +16,7 @@ namespace ProcessorMarkdown
             {">", "&gt;"},
             {"\"", "&quot;"},
             {"©", "&copy;"}
-        }; 
+        };
 
         public ProcessorMarkdown(string textMarkdown)
         {
@@ -26,16 +26,20 @@ namespace ProcessorMarkdown
         public string GetResultOfProcessing()
         {
             if (string.IsNullOrEmpty(textMarkdown)) return string.Empty;
-            
-            
-            var paragraphs = Regex.Split(textMarkdown, @"\n\n").Select(ReplaceSpecialCharacters).Select(ReplaceSelectionsParagraphOnTags);
-            
+
+
+            var paragraphs = Regex.Split(textMarkdown, @"\n\s*\n")
+                                  .Select(ReplaceSpecialCharacters)
+                                  .Select(ReplaceSelectionsParagraphOnTags);
+
             return paragraphs.Aggregate("", (current, paragraph) => current + string.Format("<p>{0}</p>", paragraph));
         }
 
         private string ReplaceSpecialCharacters(string paragraph)
         {
-            return htmlRepresentationOfSpecialCharacter.Keys.Aggregate(paragraph, (current, v) => current.Replace(v, htmlRepresentationOfSpecialCharacter[v]));
+            return htmlRepresentationOfSpecialCharacter
+                    .Keys
+                    .Aggregate(paragraph, (current, v) => current.Replace(v, htmlRepresentationOfSpecialCharacter[v]));
         }
 
         private static string ReplaceSelectionsParagraphOnTags(string paragraph)
