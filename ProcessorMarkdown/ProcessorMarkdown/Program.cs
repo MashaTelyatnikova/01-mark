@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ProcessorMarkdown
@@ -12,8 +13,8 @@ namespace ProcessorMarkdown
         static void Main(string[] args)
         {
             var fileName = args[0];
-            var processorMarkDown = new ProcessorMarkdown(File.ReadAllText(fileName));
-            var result = processorMarkDown.GetResultOfProcessing();
+            var processorMarkdown = new ProcessorMarkdown(File.ReadAllText(fileName));
+            var result = processorMarkdown.GetHtmlResultOfProcessing();
 
             File.WriteAllText(Path.ChangeExtension(fileName, "html"), GetHtmlTextWithHeaders(result), Encoding.UTF8);
         }
