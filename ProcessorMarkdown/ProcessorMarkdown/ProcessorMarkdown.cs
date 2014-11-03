@@ -10,7 +10,7 @@ namespace ProcessorMarkdown
     public class ProcessorMarkdown
     {
         private readonly string textMarkdown;
-        private readonly Dictionary<string, string> htmlRepresentationOfSpecialCharacter = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> HtmlRepresentationOfSpecialCharacter = new Dictionary<string, string>()
         {
             {"<", "&lt;"},
             {">", "&gt;"},
@@ -27,19 +27,24 @@ namespace ProcessorMarkdown
         {
             if (string.IsNullOrEmpty(textMarkdown)) return string.Empty;
 
+            var paragraphs = GetParagraphs(textMarkdown);
 
-            var paragraphs = Regex.Split(textMarkdown, @"\n\s*\n")
-                                  .Select(ReplaceSpecialCharacters)
-                                  .Select(ReplaceSelectionsParagraphOnTags);
-
-            return paragraphs.Aggregate("", (current, paragraph) => current + string.Format("<p>{0}</p>", paragraph));
+            return string.Join("", paragraphs);
         }
 
-        private string ReplaceSpecialCharacters(string paragraph)
+        private static IEnumerable<string> GetParagraphs(string textMarkdown)
         {
-            return htmlRepresentationOfSpecialCharacter
+            return Regex.Split(textMarkdown, @"\n\s*\n")
+                        .Select(ReplaceSpecialCharacters)
+                        .Select(ReplaceSelectionsParagraphOnTags)
+                        .Select(paragraph => string.Format("<p>{0}</p>", paragraph));
+        }
+
+        private static string ReplaceSpecialCharacters(string paragraph)
+        {
+            return HtmlRepresentationOfSpecialCharacter
                     .Keys
-                    .Aggregate(paragraph, (current, v) => current.Replace(v, htmlRepresentationOfSpecialCharacter[v]));
+                    .Aggregate(paragraph, (current, v) => current.Replace(v, HtmlRepresentationOfSpecialCharacter[v]));
         }
 
         private static string ReplaceSelectionsParagraphOnTags(string paragraph)

@@ -65,5 +65,11 @@ namespace ProcessorMarkdown
         {
             Test("<p>Masha</p> \"Hello!\" ©M", "<p>&lt;p&gt;Masha&lt;/p&gt; &quot;Hello!&quot; &copy;M</p>");
         }
+
+        [Test]
+        public void test()
+        {
+            Test("My _name \\_is\\_ Masha.", "<p>My _name _is_ Masha.</p>");
+        }
     }
 }

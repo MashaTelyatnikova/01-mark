@@ -9,6 +9,9 @@ namespace ProcessorMarkdown
 {
     public class AutomateReplacement
     {
+
+        private delegate void OperationDelegate(char c);
+
         private enum States
         {
             Initial,
@@ -28,21 +31,45 @@ namespace ProcessorMarkdown
         private readonly StringBuilder result;
         private readonly StringBuilder selectedWord;
 
+        private readonly Dictionary<Tuple<States, TypesCharacters>, States> transictions = new Dictionary<Tuple<States, TypesCharacters>, States>()
+            {
+                {Tuple.Create(States.Initial, TypesCharacters.Undercsore), States.OpeningUnderscore},
+                {Tuple.Create(States.Initial, TypesCharacters.Slash), States.Screening},
+                {Tuple.Create(States.Initial, TypesCharacters.NotSpecial), States.Initial},
+                {Tuple.Create(States.Screening, TypesCharacters.NotSpecial), States.Initial},
+                {Tuple.Create(States.Screening, TypesCharacters.Slash), States.Initial},
+                {Tuple.Create(States.Screening, TypesCharacters.Undercsore), States.Initial},
+                {Tuple.Create(States.OpeningUnderscore, TypesCharacters.NotSpecial),States.OpeningUnderscore },
+                {Tuple.Create(States.OpeningUnderscore, TypesCharacters.Slash), States.ScreeningInsideSelection},
+                {Tuple.Create(States.OpeningUnderscore, TypesCharacters.Undercsore), States.Initial},
+                {Tuple.Create(States.ScreeningInsideSelection, TypesCharacters.NotSpecial), States.OpeningUnderscore},
+                {Tuple.Create(States.ScreeningInsideSelection, TypesCharacters.Slash), States.OpeningUnderscore},
+                {Tuple.Create(States.ScreeningInsideSelection, TypesCharacters.Undercsore), States.OpeningUnderscore}
+            };
+
+        private readonly Dictionary<Tuple<States, TypesCharacters>, OperationDelegate> actions;
         public AutomateReplacement()
         {
             result = new StringBuilder();
             selectedWord = new StringBuilder();
             currentState = States.Initial;
+            actions = new Dictionary<Tuple<States, TypesCharacters>, OperationDelegate>()
+            {
+                 {Tuple.Create(States.Initial,  TypesCharacters.Undercsore), AppendNewCharToResult},
+                 {Tuple.Create(States.Initial, TypesCharacters.Slash), AppendNewCharToResult},
+                 {Tuple.Create(States.Initial, TypesCharacters.NotSpecial), AppendNewCharToResult},
+                 {Tuple.Create(States.Screening, TypesCharacters.NotSpecial), AppendNewCharToResult},
+                 {Tuple.Create(States.Screening, TypesCharacters.Slash), AppendNewCharToResult},
+                 {Tuple.Create(States.Screening, TypesCharacters.Undercsore), HandleScreeningUnderscore},
+                 {Tuple.Create(States.OpeningUnderscore, TypesCharacters.NotSpecial), AppendCharToResultAndToSelectedWord},
+                 {Tuple.Create(States.OpeningUnderscore, TypesCharacters.Slash), AppendCharToResultAndToSelectedWord},
+                 {Tuple.Create(States.OpeningUnderscore, TypesCharacters.Undercsore), PushSelectedWordToResult},
+                 {Tuple.Create(States.ScreeningInsideSelection, TypesCharacters.NotSpecial), AppendCharToResultAndToSelectedWord},
+                 {Tuple.Create(States.ScreeningInsideSelection, TypesCharacters.Slash), AppendCharToResultAndToSelectedWord},
+                 {Tuple.Create(States.ScreeningInsideSelection, TypesCharacters.Undercsore), HandleScreeningUnderscoreInsideSelection}
+            };
         }
-
-        private void Reset()
-        {
-
-            currentState = States.Initial;
-            result.Clear();
-            selectedWord.Clear();
-        }
-
+        
         public string GetResult(string line)
         {
             Reset();
@@ -56,65 +83,21 @@ namespace ProcessorMarkdown
             return result.ToString();
         }
 
-        private void DoStep(char currentChar)
+        private void Reset()
         {
-            var typeCurrentChar = GetTypeChar(currentChar);
-            switch (currentState)
-            {
-                case States.Initial:
-                    {
-                        result.Append(currentChar);
-                        if (typeCurrentChar.Equals(TypesCharacters.Undercsore))
-                            currentState = States.OpeningUnderscore;
-                        else if (typeCurrentChar.Equals(TypesCharacters.Slash))
-                            currentState = States.Screening;
-                        break;
-                    }
-                case States.Screening:
-                    {
-                        if (typeCurrentChar.Equals(TypesCharacters.Undercsore))
-                            result.Remove(result.Length - 1, 1);
-                        result.Append(currentChar);
-                        currentState = States.Initial;
-                        break;
-                    }
-                case States.OpeningUnderscore:
-                    {
-                        if (typeCurrentChar.Equals(TypesCharacters.Slash))
-                        {
-                            result.Append(currentChar);
-                            selectedWord.Append(currentChar);
-                            currentState = States.ScreeningInsideSelection;
-                        }
-                        else if (!typeCurrentChar.Equals(TypesCharacters.Undercsore))
-                        {
-                            selectedWord.Append(currentChar);
-                            result.Append(currentChar);
-                        }
-                        else
-                        {
-                            WriteSelectedWordWithTag("em");
-                            selectedWord.Clear();
-                            currentState = States.Initial;
 
-                        }
-                        break;
-                    }
-                case States.ScreeningInsideSelection:
-                    {
-                        if (typeCurrentChar.Equals(TypesCharacters.Undercsore))
-                            selectedWord.Remove(selectedWord.Length - 1, 1);
-                        selectedWord.Append(currentChar);
-                        currentState = States.OpeningUnderscore;
-                        break;
-                    }
-            }
+            currentState = States.Initial;
+            result.Clear();
+            selectedWord.Clear();
         }
 
-        private void WriteSelectedWordWithTag(string nameTag)
+        private void DoStep(char currentChar)
         {
-            result.Remove(result.Length - selectedWord.Length - 1, selectedWord.Length + 1);
-            result.AppendFormat("<{0}>{1}</{0}>", nameTag, selectedWord);
+            
+            var typeCurrentChar = GetTypeChar(currentChar);
+            var action = actions[Tuple.Create(currentState, typeCurrentChar)];
+            action(currentChar);
+            currentState = transictions[Tuple.Create(currentState, typeCurrentChar)];
         }
 
         private static TypesCharacters GetTypeChar(char ch)
@@ -129,6 +112,38 @@ namespace ProcessorMarkdown
                     return TypesCharacters.NotSpecial;
 
             }
+        }
+
+        private void AppendNewCharToResult(char ch)
+        {
+            result.Append(ch);
+        }
+
+        private void AppendCharToResultAndToSelectedWord(char c)
+        {
+            result.Append(c);
+            selectedWord.Append(c);
+        }
+
+        private void HandleScreeningUnderscore(char sreeningChar)
+        {
+            result.Remove(result.Length - 1, 1);
+            result.Append(sreeningChar);
+        }
+
+        private void HandleScreeningUnderscoreInsideSelection(char sreeningChar)
+        {
+            selectedWord.Remove(selectedWord.Length - 1, 1);
+            selectedWord.Append(sreeningChar);
+            result.Remove(result.Length - 1, 1);
+            result.Append(sreeningChar);
+        }
+
+        private void PushSelectedWordToResult(char ch)
+        {
+            result.Remove(result.Length - selectedWord.Length - 1, selectedWord.Length + 1);
+            result.AppendFormat("<em>{0}</em>", selectedWord);
+            selectedWord.Clear();
         }
     }
 }
