@@ -20,7 +20,7 @@ namespace ProcessorMarkdown
 
         private static string GetHtmlTextWithHeaders(string text)
         {
-            return string.Format("<!DOCTYPE HTML><HTML><HEAD><TITLE> </TITLE><META http-equiv=\"Content-Type\" content=\"text/html; charset=utf8\"></HEAD><BODY>{0}</BODY></HTML>", text);
+            return string.Format("<!DOCTYPE HTML><HTML><HEAD><TITLE> </TITLE><META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></HEAD><BODY>{0}</BODY></HTML>", text);
         }
     }
 }
