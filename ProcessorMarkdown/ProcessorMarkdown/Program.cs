@@ -13,8 +13,7 @@ namespace ProcessorMarkdown
         static void Main(string[] args)
         {
             var fileName = args[0];
-            var processorMarkdown = new ProcessorMarkdown(File.ReadAllText(fileName));
-            var result = processorMarkdown.GetHtmlResultOfProcessing();
+            var result = Processor.GerHtmlResultProcessing(File.ReadAllText(fileName));
 
             File.WriteAllText(Path.ChangeExtension(fileName, "html"), GetHtmlTextWithHeaders(result), Encoding.UTF8);
         }

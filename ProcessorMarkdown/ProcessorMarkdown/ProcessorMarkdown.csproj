@@ -44,8 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProcessorMarkdown.cs" />
-    <Compile Include="ParserToHtml_should.cs" />
+    <Compile Include="MarkdownParser.cs" />
+    <Compile Include="Processor.cs" />
+    <Compile Include="Processor_should.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
