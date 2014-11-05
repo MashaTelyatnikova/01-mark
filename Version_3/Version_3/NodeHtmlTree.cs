@@ -9,20 +9,48 @@ namespace Version_3
 {
     public class NodeHtmlTree
     {
-        private TypeNodeHtmlTree typeNode;
-        private string content;
-        private List<NodeHtmlTree> childs;
+        public TypeNodeHtmlTree Type { get; private set; }
+        public string Content { get; private set; }
+        private readonly List<NodeHtmlTree> childs;
 
-        public NodeHtmlTree(TypeNodeHtmlTree typeNode, string content)
+        public NodeHtmlTree(TypeNodeHtmlTree type, string content)
         {
-            this.typeNode = typeNode;
-            this.content = content;
+            this.Type = type;
+            this.Content = content;
             this.childs = new List<NodeHtmlTree>();
+            CutContent();
+        }
+
+        private void CutContent()
+        {
+            switch (Type)
+            {
+                case TypeNodeHtmlTree.Em:
+                    {
+                        Content = Content.Substring(1, Content.Length - 2);
+                        break;
+                    }
+                case TypeNodeHtmlTree.Strong:
+                    {
+                        Content = Content.Substring(2, Content.Length - 4);
+                        break;
+                    }
+                default:
+                    {
+                        Content = Content;
+                        break;
+                    }
+            }
         }
 
         public void AddChild(NodeHtmlTree child)
         {
             childs.Add(child);
+        }
+
+        public void AddChilds(IEnumerable<NodeHtmlTree> ch)
+        {
+            this.childs.AddRange(ch);
         }
 
         public IEnumerable<NodeHtmlTree> GetChilds()
@@ -32,8 +60,8 @@ namespace Version_3
 
         public override string ToString()
         {
-            if (typeNode.Equals(TypeNodeHtmlTree.Text))
-                return content;
+            if (Type.Equals(TypeNodeHtmlTree.Text))
+                return Content;
 
             var result = new StringBuilder();
             foreach (var child in childs)
@@ -46,7 +74,7 @@ namespace Version_3
 
         private string GetTag()
         {
-            switch (typeNode)
+            switch (Type)
             {
                 case TypeNodeHtmlTree.Em:
                     return "em";

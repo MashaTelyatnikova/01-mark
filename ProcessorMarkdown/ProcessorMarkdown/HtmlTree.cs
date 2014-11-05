@@ -14,7 +14,7 @@ namespace ProcessorMarkdown
         public HtmlTree(string text)
         {
             this.text = text;
-            root = new NodeHtmlTree(TypesNodeHtmlTree.Root, String.Empty);
+            this.root = new NodeHtmlTree(TypesNodeHtmlTree.Root, String.Empty);
             Build();
         }
         private static readonly Dictionary<string, string> SpecialSymbolsReplacement = new Dictionary<string, string>()
@@ -50,7 +50,8 @@ namespace ProcessorMarkdown
          
             foreach (var content in contents)
             {
-                if (content + "" != SpecialSymbolsReplacement["em"] && content + "" != SpecialSymbolsReplacement["strong"])
+                if (content + "" != SpecialSymbolsReplacement["em"] &&
+                    content + "" != SpecialSymbolsReplacement["strong"])
                     innerText += content;
                 else
                 {

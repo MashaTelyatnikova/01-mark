@@ -12,7 +12,7 @@ namespace ProcessorMarkdown
     {
         private static void Test(string input, string expected)
         {
-            var actualResult = Processor.GerHtmlResultProcess(input);
+            var actualResult = Processor.GerHtmlResultProcessing(input);
 
             Assert.That(actualResult, Is.EqualTo(expected));
 

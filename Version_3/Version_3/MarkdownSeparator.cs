@@ -13,6 +13,10 @@ namespace Version_3
         private static readonly Regex CodeSections = new Regex(@"`([^`]+)`");
         private static readonly Regex ScreeningSections = new Regex(@"[\\].{1}");
         private static readonly Regex ParagraphSections = new Regex(@"\n\s*\n");
+        private static readonly Regex StrongSections = new Regex(@"\s*__[^_]+__\s*");
+        private static readonly Regex EmSections = new Regex(@"(?<=[^_]+|\b)\s*_[^_]+(_)*[^_]+_{1}\s*");
+        private static readonly Regex UnderlinesBetweenLettersAndDigits =
+            new Regex(@"[a-zA-Zа-яА-Я0-9]+[_]+[a-zA-Zа-яА-Я0-9]+([_]+[a-zA-Zа-яА-Я0-9]+)*");
 
         public static List<string> GetCodeSections(string text)
         {
@@ -26,27 +30,29 @@ namespace Version_3
 
         public static List<string> GetParagraphSections(string text)
         {
-            return GetWordsMatchesRegex(text, ParagraphSections).ToList();
+            return ParagraphSections.Split(text).ToList();
+        }
+
+        public static List<string> GetUnderlinwBetweenLettersAndDigits(string text)
+        {
+            return GetWordsMatchesRegex(text, UnderlinesBetweenLettersAndDigits).ToList();
+        }
+
+        public static List<string> GetStrongSections(string text)
+        {
+            return GetWordsMatchesRegex(text, StrongSections).ToList();
+        }
+
+        public static List<string> GetEmSections(string text)
+        {
+            return GetWordsMatchesRegex(text, EmSections).ToList();
         }
 
         private static IEnumerable<string> GetWordsMatchesRegex(string text, Regex regex)
         {
             var result = regex.Matches(text);
-           
+
             return from object word in result select word.ToString().Trim();
-        } 
-    }
-
-    [TestFixture]
-    public static class MarkdownRegex_Tests
-    {
-        [Test]
-        public static void test1()
-        {
-            var text = "`Masha <<<tt>>t \n\n hahaha` lalalalal `code`";
-            var expected = new List<string>() { "`Masha <<<tt>>t \n\n hahaha`", "`code`" };
-
-            Assert.That(MarkdownSeparator.GetCodeSections(text), Is.EqualTo(expected));
         }
     }
 }

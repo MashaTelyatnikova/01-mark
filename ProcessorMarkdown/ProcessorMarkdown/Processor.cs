@@ -32,7 +32,7 @@ namespace ProcessorMarkdown
             {"unpaired", "¡"}
         };
 
-        public static string GerHtmlResultProcess(string text)
+        public static string GerHtmlResultProcessing(string text)
         {
             //Ужасный код. Думаю, как сделать лучше
             if (string.IsNullOrEmpty(text))
