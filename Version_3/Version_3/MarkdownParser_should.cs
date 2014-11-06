@@ -54,13 +54,14 @@ namespace Version_3
         [TestCase("__Hello__", "<body><p><strong>Hello</strong></p></body>")]
         [TestCase(" __Hello__", "<body><p> <strong>Hello</strong></p></body>")]
         [TestCase("  __Hello__  ", "<body><p>  <strong>Hello</strong>  </p></body>")]
+        [TestCase("__s _ss s__ _sdk l_", "<body><p><strong>s _ss s</strong> <em>sdk l</em></p></body>")]
         public static void wrap_strong_text_surrounded_by_double_underlines(string input, string expected)
         {
             Test(input, expected);
         }
 
         [TestCase("Masha _ttt __kk ll__ lo_ hah", "<body><p>Masha <em>ttt <strong>kk ll</strong> lo</em> hah</p></body>")]
-        [TestCase("_Masha __Telyatnikova___", "<body><p><em>Masha <strong>Telyatnikova</strong></em></p></body>")]
+        [TestCase("_Masha __Telyatnikova__ _", "<body><p><em>Masha <strong>Telyatnikova</strong> </em></p></body>")]
         public static void allow_include_strong_in_em(string input, string expected)
         {
             Test(input, expected);
@@ -86,6 +87,7 @@ namespace Version_3
         [TestCase("Hi _my name is", "<body><p>Hi _my name is</p></body>")]
         [TestCase("Hi _my __name is_", "<body><p>Hi <em>my __name is</em></p></body>")]
         [TestCase("__непарные _символы не считаются `выделением.", "<body><p>__непарные _символы не считаются `выделением.</p></body>")]
+        [TestCase("Hello __world _lala k__ _kkk __l sk_", "<body><p>Hello <strong>world _lala k</strong> <em>kkk __l sk</em></p></body>")]
         public static void ignore_unpaired_characters(string input, string expected)
         {
             Test(input, expected);

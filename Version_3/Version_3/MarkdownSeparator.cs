@@ -13,7 +13,7 @@ namespace Version_3
         private static readonly Regex CodeSections = new Regex(@"`([^`]+)`");
         private static readonly Regex ScreeningSections = new Regex(@"[\\].{1}");
         private static readonly Regex ParagraphSections = new Regex(@"\n\s*\n");
-        private static readonly Regex StrongSections = new Regex(@"\s*__[^_]+__\s*");
+        private static readonly Regex StrongSections = new Regex(@"(?<![\w])__(?!_)(((?!__).)*)__(?![_\w])");
         private static readonly Regex EmSections = new Regex(@"(?<=[^_]+|\b)\s*_[^_]+(_)*[^_]+_{1}\s*");
         private static readonly Regex UnderlinesBetweenLettersAndDigits =
             new Regex(@"[a-zA-Zа-яА-Я0-9]+[_]+[a-zA-Zа-яА-Я0-9]+([_]+[a-zA-Zа-яА-Я0-9]+)*");
