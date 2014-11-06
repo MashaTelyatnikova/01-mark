@@ -15,16 +15,6 @@ namespace Version_3
             var fileName = args[0];
             var result = MarkdownParser.ParseToHtml(File.ReadAllText(fileName));
             File.WriteAllText(Path.ChangeExtension(fileName, "html"), GetHtmlTextWithHeaders(result), Encoding.UTF8);
-
-            var text = "__s _ss s__ _sdk l_";
-            var regex = new Regex(@"(?<![\w])__(?!_)(((?!__).)*)__(?![_\w])");
-           // var regex = new Regex(@"\s*__[^_]+__\s*");
-            var res = regex.Matches(text);
-
-            foreach (var re in res)
-            {
-                Console.WriteLine(re);
-            }
         }
 
         private static string GetHtmlTextWithHeaders(string text)
