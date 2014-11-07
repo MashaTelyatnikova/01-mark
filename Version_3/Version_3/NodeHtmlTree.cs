@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,72 +8,45 @@ namespace Version_3
 {
     public class NodeHtmlTree
     {
-        public TypeNodeHtmlTree Type { get; private set; }
         public string Content { get; private set; }
-        private readonly List<NodeHtmlTree> childs;
+        public List<NodeHtmlTree> Childs { get; private set; }
+
+        private readonly TypeNodeHtmlTree type;
 
         public NodeHtmlTree(TypeNodeHtmlTree type, string content)
         {
-            this.Type = type;
-            this.Content = content;
-            this.childs = new List<NodeHtmlTree>();
-            CutContent();
-        }
-
-        private void CutContent()
-        {
-            switch (Type)
-            {
-                case TypeNodeHtmlTree.Em:
-                    {
-                        Content = Content.Substring(1, Content.Length - 2);
-                        break;
-                    }
-                case TypeNodeHtmlTree.Strong:
-                    {
-                        Content = Content.Substring(2, Content.Length - 4);
-                        break;
-                    }
-                default:
-                    {
-                        Content = Content;
-                        break;
-                    }
-            }
+            this.type = type;
+            Content = content;
+            Childs = new List<NodeHtmlTree>();
         }
 
         public void AddChild(NodeHtmlTree child)
         {
-            childs.Add(child);
+            Childs.Add(child);
         }
 
-        public void AddChilds(IEnumerable<NodeHtmlTree> ch)
+        public void AddRangeChilds(List<NodeHtmlTree> childsNodes)
         {
-            this.childs.AddRange(ch);
-        }
-
-        public IEnumerable<NodeHtmlTree> GetChilds()
-        {
-            return childs;
+            Childs.AddRange(childsNodes);
         }
 
         public override string ToString()
         {
-            if (Type.Equals(TypeNodeHtmlTree.Text))
+            if (type.Equals(TypeNodeHtmlTree.Text))
                 return Content;
 
             var result = new StringBuilder();
-            foreach (var child in childs)
+            foreach (var child in Childs)
             {
                 result.Append(child.ToString());
             }
 
-            return string.Format("<{0}>{1}</{0}>", GetTag(), result.ToString());
+            return string.Format("<{0}>{1}</{0}>", GetTag(), result);
         }
 
         private string GetTag()
         {
-            switch (Type)
+            switch (type)
             {
                 case TypeNodeHtmlTree.Em:
                     return "em";

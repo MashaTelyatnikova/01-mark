@@ -1,200 +1,155 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Version_3
 {
     public class HtmlTree
     {
+        private string text;
         private NodeHtmlTree root;
-        private static readonly Dictionary<string, string> HtmlRepresentationOfSpecialCharacter = new Dictionary<string, string>()
-            {
-                    {"<", "&lt;"},
-                    {">", "&gt;"},
-                    {"\"", "&quot;"},
-                    {"©", "&copy;"},
-                    {"®", "&reg;"},
-                    {"«", "&laquo;"},
-                    {"§", "&sect;"},
-                    {"¡", "&iexcl;"}
-            };
-        private readonly Dictionary<string, char> specialSymbolsReplacement = new Dictionary<string, char>()
-        {
-            {"code", '©'},
-            {"screening", '®'},
-            {"em", '«'},
-            {"strong", '\"'},
-            {"underlines", '§'},
-            {"between", '¡'}
-        };
-
-        private List<string> sectionsCode;
-        private List<string> sectionsScreening;
-
+        private const char SymbolRemplacementCodeSections = '©';
+        private const char SymbolReplacementEmSections = '®';
+        private const char SymbolReplacementStrongSections = '§';
+        private Queue<string> codeSections;
+       
         public HtmlTree(string text)
         {
-            this.sectionsCode = new List<string>();
-            this.sectionsScreening = new List<string>();
-            this.root = new NodeHtmlTree(TypeNodeHtmlTree.Root, text);
-            BuildTree(text);
+            if (text == null) throw new ArgumentException("Invalid argument (Null)");
+            
+            this.text = HttpUtility.HtmlEncode(text);
+            codeSections = new Queue<string>();
+            Build();
         }
 
-        private void BuildTree(string text)
+        private void Build()
         {
+            HideCodeSections();
+            
+            root = new NodeHtmlTree(TypeNodeHtmlTree.Root, text);
+            
             if (string.IsNullOrEmpty(text)) return;
-
-            var replacementText = ReplaceSpecialCharacters(text);
-            replacementText = SaveAndReplaceSectionsCodeAndScreening(replacementText);
-
-            this.root = new NodeHtmlTree(TypeNodeHtmlTree.Root, replacementText);
-            DefineNextLevelTree(root);
+            
+            AddParagraphsToRoot();
+            AddChildsParagraphs();
         }
 
-        private void DefineNextLevelTree(NodeHtmlTree node)
+        private void HideCodeSections()
         {
-            var content = node.Content;
-            var type = node.Type;
+            codeSections = MarkdownSections.GetCodeSections(text);
 
-            if (type.Equals(TypeNodeHtmlTree.Root))
-            {
-                var paragraphs = MarkdownSeparator.GetParagraphSections(content)
-                                                    .Select(p => new NodeHtmlTree(TypeNodeHtmlTree.Paragraph, p))
-                                                    .ToList();
-                node.AddChilds(paragraphs);
-                foreach (var paragraph in paragraphs)
-                {
-                    DefineNextLevelTree(paragraph);
-                }
-            }
-            else
-            {
-                var childs = GetEmStrongTextChilds(content).ToList();
-                node.AddChilds(childs);
+            text = codeSections.Aggregate(text, (current, c) => current.Replace(c, SymbolRemplacementCodeSections + ""));
+        }
 
-                foreach (var child in childs.Where(ch => !ch.Type.Equals(TypeNodeHtmlTree.Text)))
-                {
-                    DefineNextLevelTree(child);
-                }
+        private void AddParagraphsToRoot()
+        {
+            var paragraphs = MarkdownSections.GetParagraphSections(text)
+                                             .Select(p => new NodeHtmlTree(TypeNodeHtmlTree.Paragraph, p))
+                                             .ToList();
+            root.AddRangeChilds(paragraphs);
+        }
+
+        private void AddChildsParagraphs()
+        {
+            foreach (var paragraph in root.Childs)
+            {
+                AddChildsParagraph(paragraph);
             }
         }
 
-        private string SaveAndReplaceSectionsCodeAndScreening(string text)
+        private void AddChildsParagraph(NodeHtmlTree nodeHtmlTree)
         {
-            sectionsCode = MarkdownSeparator.GetCodeSections(text);
+            var content = nodeHtmlTree.Content;
+            var emSections = MarkdownSections.GetEmSections(content);
+            content = ReplaceSectionsOnSpecialCharacter(content, emSections, SymbolReplacementEmSections);
 
-            var replacementText = ReplaceSectionsOnSpecialCharacter(text, sectionsCode, specialSymbolsReplacement["code"]);
+            var strongSections = MarkdownSections.GetStrongSections(content);
+            content = ReplaceSectionsOnSpecialCharacter(content, strongSections, SymbolReplacementStrongSections);
+            var innerText = new StringBuilder();
 
-            sectionsScreening = MarkdownSeparator.GetSreeningSections(replacementText);
-
-            replacementText = ReplaceSectionsOnSpecialCharacter(replacementText, sectionsScreening, specialSymbolsReplacement["screening"]);
-
-            return replacementText;
-        }
-
-        private IEnumerable<NodeHtmlTree> GetEmStrongTextChilds(string content)
-        {
-            //Делаю замену, что были как можно проще регулярные выражения, в которых можно гораздо меньше запутаться и сделать баг
-            var underlinesBetweenLettersAndDigits = MarkdownSeparator.GetUnderlinwBetweenLettersAndDigits(content);
-            var replacementContent = ReplaceSectionsOnSpecialCharacter(content, underlinesBetweenLettersAndDigits,
-                specialSymbolsReplacement["between"]);
-
-            var strongSections = MarkdownSeparator.GetStrongSections(replacementContent);
-            replacementContent = ReplaceSectionsOnSpecialCharacter(replacementContent, strongSections,
-                specialSymbolsReplacement["underlines"]);
-
-            var emSections = MarkdownSeparator.GetEmSections(replacementContent);
-            replacementContent = ReplaceSectionsOnSpecialCharacter(replacementContent, emSections,
-                specialSymbolsReplacement["em"]);
-
-
-            var currentTextChild = new StringBuilder();
-            foreach (var character in replacementContent)
+            foreach (var character in content)
             {
-                if (character != specialSymbolsReplacement["em"] && character != specialSymbolsReplacement["between"] &&
-                                character != specialSymbolsReplacement["underlines"])
-                {
-                    currentTextChild.Append(character);
-                }
+                if (character != SymbolReplacementEmSections && character != SymbolReplacementStrongSections)
+                    innerText.Append(character);
                 else
                 {
-                    if (currentTextChild.ToString() != "")
-                        yield return new NodeHtmlTree(TypeNodeHtmlTree.Text, currentTextChild.ToString());
-                    currentTextChild.Clear();
+                    if (innerText.ToString() != "")
+                        nodeHtmlTree.AddChild(new NodeHtmlTree(TypeNodeHtmlTree.Text, innerText.ToString()));
+                    innerText.Clear();
 
-                    if (character == specialSymbolsReplacement["em"])
+                    NodeHtmlTree child;
+                    if (character == SymbolReplacementEmSections)
                     {
+                        var em = emSections.Dequeue();
+                        child = new NodeHtmlTree(TypeNodeHtmlTree.Em, CutExtremeCharactres(em, 1));
+                    }
+                    else
+                    {
+                        var strong = strongSections.Dequeue();
 
-                        var em = emSections[0];
-                        em = ReplaceSpecialCharactersOnSections(em, specialSymbolsReplacement["between"],
-                            underlinesBetweenLettersAndDigits);
-                        em = ReplaceSpecialCharactersOnSections(em, specialSymbolsReplacement["underlines"],
-                                strongSections);
-                        emSections.RemoveAt(0);
-                        yield return new NodeHtmlTree(TypeNodeHtmlTree.Em, em);
+                        child = new NodeHtmlTree(TypeNodeHtmlTree.Strong, CutExtremeCharactres(strong, 2));
                     }
-                    if (character == specialSymbolsReplacement["between"])
-                    {
-                        currentTextChild.Append(underlinesBetweenLettersAndDigits[0]);
-                        underlinesBetweenLettersAndDigits.RemoveAt(0);
-                    }
-                    if (character == specialSymbolsReplacement["underlines"])
-                    {
-                        yield return new NodeHtmlTree(TypeNodeHtmlTree.Strong, strongSections[0]);
-                        strongSections.RemoveAt(0);
-                    }
+                    nodeHtmlTree.AddChild(child);
+                    AddChildsParagraph(child);
                 }
             }
 
-            if (currentTextChild.ToString() != "")
-                yield return new NodeHtmlTree(TypeNodeHtmlTree.Text, currentTextChild.ToString());
+            if (innerText.ToString() != "")
+                nodeHtmlTree.AddChild(new NodeHtmlTree(TypeNodeHtmlTree.Text, innerText.ToString()));
         }
 
-        private static string ReplaceSectionsOnSpecialCharacter(string text, List<string> sections, char specialCharacter)
+        private static string ReplaceSectionsOnSpecialCharacter(string text, Queue<string> sections, char specialCharacter)
         {
             return sections.Aggregate(text, (current, c) => current.Replace(c, specialCharacter + ""));
         }
 
-        private static string ReplaceSpecialCharactersOnSections(string text, char specialCharacter, List<string> sections)
+        private static string CutExtremeCharactres(string text, int count)
         {
+            return text.Substring(0 + count, text.Length - 2 * count);
+        }
+        
+        private string OpenCodeSections(string t)
+        {
+            WrapCodeSectionsInTags();
             var result = new StringBuilder();
-            foreach (var t in text)
+            foreach (var c in t)
             {
-                if (t == specialCharacter)
+                if (c == SymbolRemplacementCodeSections)
                 {
-                    result.Append(sections[0]);
-                    sections.RemoveAt(0);
+                    result.Append(codeSections.Dequeue());
                 }
                 else
                 {
-                    result.Append(t);
+                    result.Append(c);
                 }
             }
 
             return result.ToString();
         }
 
-        private static string ReplaceSpecialCharacters(string text)
+        private void WrapCodeSectionsInTags()
         {
-            return HtmlRepresentationOfSpecialCharacter
-                    .Keys
-                    .Aggregate(text, (current, v) => current.Replace(v, HtmlRepresentationOfSpecialCharacter[v]));
+            codeSections =
+                new Queue<string>(codeSections.Select(code => string.Format("<code>{0}</code>", CutExtremeCharactres(code, 1))));
+        }
+
+        private static string CutEscape(string t)
+        {
+            var screeningSections = MarkdownSections.GetSreeningSections(t);
+
+            return screeningSections.Aggregate(t, (current, c) => current.Replace(c, c.Substring(1)));
         }
 
         public override string ToString()
         {
-            var htmlSectionsCode = sectionsCode.Select(code => string.Format("<code>{0}</code>", code.Substring(1, code.Length - 2))).ToList();
-
-            var htmlSectionsScreening = sectionsScreening.Select(scr => scr.Substring(1)).ToList();
-
-            var result = root.ToString();
-            result = ReplaceSpecialCharactersOnSections(result, specialSymbolsReplacement["code"], htmlSectionsCode);
-            result = ReplaceSpecialCharactersOnSections(result, specialSymbolsReplacement["screening"], htmlSectionsScreening);
-
-            return result;
+            var rootString = root.ToString();
+            rootString = OpenCodeSections(rootString);
+            rootString = CutEscape(rootString);
+            return rootString;
         }
     }
 }

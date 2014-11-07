@@ -12,14 +12,17 @@ namespace Version_3
     {
         private static void Test(string input, string expected)
         {
-            var actualResult = MarkdownParser.ParseToHtml(input);
+            Assert.That(MarkdownParser.ParseToHtml(input), Is.EqualTo(expected));
+        }
 
-            Assert.That(actualResult, Is.EqualTo(expected));
+        [Test]
+        public static void throw_argument_exception_for_null()
+        { 
+            Assert.That(() => MarkdownParser.ParseToHtml(null), Throws.ArgumentException);
         }
 
         [TestCase("", "<body></body>")]
-        [TestCase(null, "<body></body>")]
-        public static void resturn_empty_body_for_empty_or_null(string input, string expected)
+        public static void resturn_empty_body_for_empty_string(string input, string expected)
         {
             Test(input, expected);
         }
