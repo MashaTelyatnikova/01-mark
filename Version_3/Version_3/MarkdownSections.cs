@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Version_3
 {
@@ -37,14 +34,14 @@ namespace Version_3
 
         public static List<string> GetParagraphSections(string text)
         {
-            return ParagraphSections.Split(text).ToList();
+            return ParagraphSections.Split(text).Where(i => !string.IsNullOrEmpty(i)).ToList();
         }
 
         private static IEnumerable<string> GetWordsMatchesRegex(string text, Regex regex)
         {
             var result = regex.Matches(text);
-
-            return from object word in result select word.ToString().Trim();
+            return from object v in result where !string.IsNullOrEmpty(v.ToString()) select v.ToString();
+            
         }
     }
 }

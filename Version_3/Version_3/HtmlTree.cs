@@ -1,53 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace Version_3
 {
     public class HtmlTree
     {
-        private string text;
-        private NodeHtmlTree root;
-        private const char SymbolRemplacementCodeSections = '©';
+        private readonly NodeHtmlTree root;
         private const char SymbolReplacementEmSections = '®';
         private const char SymbolReplacementStrongSections = '§';
-        private Queue<string> codeSections;
        
         public HtmlTree(string text)
         {
-            if (text == null) throw new ArgumentException("Invalid argument (Null)");
-            
-            this.text = HttpUtility.HtmlEncode(text);
-            codeSections = new Queue<string>();
+            root = new NodeHtmlTree(TypeNodeHtmlTree.Root, text);
             Build();
         }
 
         private void Build()
         {
-            HideCodeSections();
-            
-            root = new NodeHtmlTree(TypeNodeHtmlTree.Root, text);
-            
-            if (string.IsNullOrEmpty(text)) return;
-            
             AddParagraphsToRoot();
             AddChildsParagraphs();
         }
 
-        private void HideCodeSections()
-        {
-            codeSections = MarkdownSections.GetCodeSections(text);
-
-            text = codeSections.Aggregate(text, (current, c) => current.Replace(c, SymbolRemplacementCodeSections + ""));
-        }
-
         private void AddParagraphsToRoot()
         {
-            var paragraphs = MarkdownSections.GetParagraphSections(text)
+            var paragraphs = MarkdownSections.GetParagraphSections(root.Content)
                                              .Select(p => new NodeHtmlTree(TypeNodeHtmlTree.Paragraph, p))
                                              .ToList();
             root.AddRangeChilds(paragraphs);
@@ -111,45 +88,10 @@ namespace Version_3
         {
             return text.Substring(0 + count, text.Length - 2 * count);
         }
-        
-        private string OpenCodeSections(string t)
-        {
-            WrapCodeSectionsInTags();
-            var result = new StringBuilder();
-            foreach (var c in t)
-            {
-                if (c == SymbolRemplacementCodeSections)
-                {
-                    result.Append(codeSections.Dequeue());
-                }
-                else
-                {
-                    result.Append(c);
-                }
-            }
-
-            return result.ToString();
-        }
-
-        private void WrapCodeSectionsInTags()
-        {
-            codeSections =
-                new Queue<string>(codeSections.Select(code => string.Format("<code>{0}</code>", CutExtremeCharactres(code, 1))));
-        }
-
-        private static string CutEscape(string t)
-        {
-            var screeningSections = MarkdownSections.GetSreeningSections(t);
-
-            return screeningSections.Aggregate(t, (current, c) => current.Replace(c, c.Substring(1)));
-        }
 
         public override string ToString()
         {
-            var rootString = root.ToString();
-            rootString = OpenCodeSections(rootString);
-            rootString = CutEscape(rootString);
-            return rootString;
+           return root.ToString();
         }
     }
 }
