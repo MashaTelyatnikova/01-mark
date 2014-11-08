@@ -22,7 +22,6 @@ namespace Version_3
             var htmlTree = new HtmlTree(text).ToString();
             htmlTree = ReplaceScreeningSections(htmlTree);
             htmlTree = ReplaceSpecialCharOnCodeSectionsWrappedTags(htmlTree, WrapCodeSectionsInTags(codeSections));
-
             return htmlTree;
         }
 
