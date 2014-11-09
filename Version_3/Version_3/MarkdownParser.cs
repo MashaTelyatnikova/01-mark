@@ -12,7 +12,7 @@ namespace Version_3
        
         public static string ParseToHtml(string text)
         {
-            if (text == null) throw new ArgumentException("Invalid argument (Null)");
+            if (text == null) throw new ArgumentNullException();
 
             text = HttpUtility.HtmlEncode(text);
             var codeSections = MarkdownSections.GetCodeSections(text);
@@ -21,16 +21,16 @@ namespace Version_3
              
             var htmlTree = new HtmlTree(text).ToString();
             htmlTree = ReplaceScreeningSections(htmlTree);
-            htmlTree = ReplaceSpecialCharOnCodeSectionsWrappedTags(htmlTree, WrapCodeSectionsInTags(codeSections));
+            htmlTree = ReplaceSymbolOnSections(htmlTree, WrapCodeSectionsInTags(codeSections), SymbolRemplacementCodeSections);
             return htmlTree;
         }
 
-        private static string ReplaceSpecialCharOnCodeSectionsWrappedTags(string text, Queue<string> codeSections)
+        private static string ReplaceSymbolOnSections(string text, Queue<string> codeSections, char symbol)
         {
             var result = new StringBuilder();
             foreach (var c in text)
             {
-                if (c == SymbolRemplacementCodeSections)
+                if (c == symbol)
                 {
                     result.Append(codeSections.Dequeue());
                 }

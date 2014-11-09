@@ -6,13 +6,13 @@ namespace Version_3
 {
     public class HtmlTree
     {
-        private readonly NodeHtmlTree root;
+        private readonly HtmlTreeNode root;
         private const char SymbolReplacementEmSections = '®';
         private const char SymbolReplacementStrongSections = '§';
        
         public HtmlTree(string text)
         {
-            root = new NodeHtmlTree(TypeNodeHtmlTree.Root, text);
+            root = new HtmlTreeNode(TypeNodeHtmlTree.Root, text);
             Build();
         }
 
@@ -25,9 +25,9 @@ namespace Version_3
         private void AddParagraphsToRoot()
         {
             var paragraphs = MarkdownSections.GetParagraphSections(root.Content)
-                                             .Select(p => new NodeHtmlTree(TypeNodeHtmlTree.Paragraph, p))
+                                             .Select(p => new HtmlTreeNode(TypeNodeHtmlTree.Paragraph, p))
                                              .ToList();
-            root.AddRangeChilds(paragraphs);
+            root.AddChilds(paragraphs);
         }
 
         private void AddChildsParagraphs()
@@ -38,9 +38,9 @@ namespace Version_3
             }
         }
 
-        private void AddChildsParagraph(NodeHtmlTree nodeHtmlTree)
+        private void AddChildsParagraph(HtmlTreeNode htmlTreeNode)
         {
-            var content = nodeHtmlTree.Content;
+            var content = htmlTreeNode.Content;
             var emSections = MarkdownSections.GetEmSections(content);
             content = ReplaceSectionsOnSpecialCharacter(content, emSections, SymbolReplacementEmSections);
 
@@ -54,29 +54,29 @@ namespace Version_3
                     innerText.Append(character);
                 else
                 {
-                    if (innerText.ToString() != "")
-                        nodeHtmlTree.AddChild(new NodeHtmlTree(TypeNodeHtmlTree.Text, innerText.ToString()));
+                    if (innerText.Length != 0)
+                        htmlTreeNode.AddChild(new HtmlTreeNode(TypeNodeHtmlTree.Text, innerText.ToString()));
                     innerText.Clear();
 
-                    NodeHtmlTree child;
+                    HtmlTreeNode child;
                     if (character == SymbolReplacementEmSections)
                     {
                         var em = emSections.Dequeue();
-                        child = new NodeHtmlTree(TypeNodeHtmlTree.Em, CutExtremeCharactres(em, 1));
+                        child = new HtmlTreeNode(TypeNodeHtmlTree.Em, CutExtremeCharactres(em, 1));
                     }
                     else
                     {
                         var strong = strongSections.Dequeue();
 
-                        child = new NodeHtmlTree(TypeNodeHtmlTree.Strong, CutExtremeCharactres(strong, 2));
+                        child = new HtmlTreeNode(TypeNodeHtmlTree.Strong, CutExtremeCharactres(strong, 2));
                     }
-                    nodeHtmlTree.AddChild(child);
+                    htmlTreeNode.AddChild(child);
                     AddChildsParagraph(child);
                 }
             }
 
-            if (innerText.ToString() != "")
-                nodeHtmlTree.AddChild(new NodeHtmlTree(TypeNodeHtmlTree.Text, innerText.ToString()));
+            if (innerText.Length != 0)
+                htmlTreeNode.AddChild(new HtmlTreeNode(TypeNodeHtmlTree.Text, innerText.ToString()));
         }
 
         private static string ReplaceSectionsOnSpecialCharacter(string text, Queue<string> sections, char specialCharacter)

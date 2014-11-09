@@ -11,20 +11,22 @@ namespace Version_3
         }
 
         [Test]
-        public static void throw_argument_exception_for_null()
+        public static void throw_argument_null_exception_for_null()
         { 
-            Assert.That(() => MarkdownParser.ParseToHtml(null), Throws.ArgumentException);
+            Assert.That(() => MarkdownParser.ParseToHtml(null), Throws.Exception);
         }
 
-        [TestCase("", "<body></body>")]
-        public static void resturn_empty_body_for_empty_string(string input, string expected)
+        [TestCase("", "<body><p></p></body>")]
+        public static void resturn_empty_paragraph_for_empty_string(string input, string expected)
         {
             Test(input, expected);
         }
 
         [TestCase("Hello, World!", "<body><p>Hello, World!</p></body>")]
         [TestCase("Hello!\n\t    \nWorld!", "<body><p>Hello!</p><p>World!</p></body>")]
-        public static void return_one_paragraph_for_simple_line(string input, string expected)
+        [TestCase("Hello!\n\n\n\nWorld.", "<body><p>Hello!</p><p></p><p>World.</p></body>")]
+        [TestCase("Hello!\nwww\nlala\n\nWorld!", "<body><p>Hello!\nwww\nlala</p><p>World!</p></body>")]
+        public static void return_few_paragraphs_for_simple_lines(string input, string expected)
         {
             Test(input, expected);
         }
@@ -93,6 +95,12 @@ namespace Version_3
 
         [TestCase("Hello, <p>world </p> \"Hi\".", "<body><p>Hello, &lt;p&gt;world &lt;/p&gt; &quot;Hi&quot;.</p></body>")]
         public static void replace_special_characters_to_html_representation(string input, string expected)
+        {
+            Test(input, expected);
+        }
+
+        [TestCase("Hi, _my ©name is ® lala_ __kshf §jds__", "<body><p>Hi, <em>my &#169;name is &#174; lala</em> <strong>kshf &#167;jds</strong></p></body>")]
+        public static void not_shoot_in_leg_of_user_who_uses_special_characters(string input, string expected)
         {
             Test(input, expected);
         }

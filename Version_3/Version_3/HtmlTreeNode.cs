@@ -4,26 +4,26 @@ using System.Text;
 
 namespace Version_3
 {
-    public class NodeHtmlTree
+    public class HtmlTreeNode
     {
         public string Content { get; private set; }
-        public List<NodeHtmlTree> Childs { get; private set; }
+        public List<HtmlTreeNode> Childs { get; private set; }
 
         private readonly TypeNodeHtmlTree type;
 
-        public NodeHtmlTree(TypeNodeHtmlTree type, string content)
+        public HtmlTreeNode(TypeNodeHtmlTree type, string content)
         {
             this.type = type;
             Content = content;
-            Childs = new List<NodeHtmlTree>();
+            Childs = new List<HtmlTreeNode>();
         }
 
-        public void AddChild(NodeHtmlTree child)
+        public void AddChild(HtmlTreeNode child)
         {
             Childs.Add(child);
         }
 
-        public void AddRangeChilds(List<NodeHtmlTree> childsNodes)
+        public void AddChilds(IEnumerable<HtmlTreeNode> childsNodes)
         {
             Childs.AddRange(childsNodes);
         }

@@ -32,9 +32,9 @@ namespace Version_3
             return new Queue<string>(GetWordsMatchesRegex(text, CodeSections));
         }
 
-        public static List<string> GetParagraphSections(string text)
+        public static IEnumerable<string> GetParagraphSections(string text)
         {
-            return ParagraphSections.Split(text).Where(i => !string.IsNullOrEmpty(i)).ToList();
+            return ParagraphSections.Split(text).ToList();
         }
 
         private static IEnumerable<string> GetWordsMatchesRegex(string text, Regex regex)
