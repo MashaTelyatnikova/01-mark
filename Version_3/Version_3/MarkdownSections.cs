@@ -20,17 +20,22 @@ namespace Version_3
 
         public static Queue<string> GetStrongSections(string text)
         {
-            return new Queue<string>(GetWordsMatchesRegex(text, StrongSections));
+            return new Queue<string>(GetWordsMatchesRegex(text, StrongSections).Select(i => CutExtremeCharactres(i, 2)));
         }
 
         public static Queue<string> GetEmSections(string text)
         {
-            return new Queue<string>(GetWordsMatchesRegex(text, EmSections));
+            return new Queue<string>(GetWordsMatchesRegex(text, EmSections).Select(i => CutExtremeCharactres(i, 1)));
         }
 
         public static Queue<string> GetCodeSections(string text)
         {
             return new Queue<string>(GetWordsMatchesRegex(text, CodeSections));
+        }
+
+        private static string CutExtremeCharactres(string text, int count)
+        {
+            return text.Substring(0 + count, text.Length - 2 * count);
         }
 
         public static IEnumerable<string> GetParagraphSections(string text)
