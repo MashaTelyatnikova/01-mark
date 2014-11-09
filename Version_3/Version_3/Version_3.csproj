@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HtmlTreeBuilder.cs" />
     <Compile Include="MarkdownParser.cs" />
     <Compile Include="MarkdownParser_should.cs" />
     <Compile Include="MarkdownSections.cs" />

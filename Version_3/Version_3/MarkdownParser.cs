@@ -19,7 +19,7 @@ namespace Version_3
             
             text = ReplaceCodeSectionsOnSpecialChar(text, codeSections);
              
-            var htmlTree = new HtmlTree(text).ToString();
+            var htmlTree = HtmlTreeBuilder.Build(text).ToString();
             htmlTree = ReplaceScreeningSections(htmlTree);
             htmlTree = ReplaceSymbolOnSections(htmlTree, WrapCodeSectionsInTags(codeSections), SymbolRemplacementCodeSections);
             return htmlTree;
