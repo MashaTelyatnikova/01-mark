@@ -26,6 +26,7 @@ namespace Version_3
         [TestCase("Hello!\n\t    \nWorld!", "<body><p>Hello!</p><p>World!</p></body>")]
         [TestCase("Hello!\n\n\n\nWorld.", "<body><p>Hello!</p><p></p><p>World.</p></body>")]
         [TestCase("Hello!\nwww\nlala\n\nWorld!", "<body><p>Hello!\nwww\nlala</p><p>World!</p></body>")]
+        [TestCase("Hello\n\t\t  \n   world!\n\n\n\n\n\nlalala\n", "<body><p>Hello</p><p>   world!</p><p></p><p></p><p>lalala</p></body>")]
         public static void return_few_paragraphs_for_simple_lines(string input, string expected)
         {
             Test(input, expected);

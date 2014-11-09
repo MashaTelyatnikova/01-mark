@@ -14,7 +14,7 @@ namespace Version_3
         {
             if (text == null) throw new ArgumentNullException();
 
-            text = HttpUtility.HtmlEncode(text);
+            text = ReplaceSpecialCharacters(text);
             var codeSections = MarkdownSections.GetCodeSections(text);
             
             text = ReplaceCodeSectionsOnSpecialChar(text, codeSections);
@@ -23,6 +23,11 @@ namespace Version_3
             htmlTree = ReplaceScreeningSections(htmlTree);
             htmlTree = ReplaceSymbolOnSections(htmlTree, WrapCodeSectionsInTags(codeSections), SymbolRemplacementCodeSections);
             return htmlTree;
+        }
+
+        private static string ReplaceSpecialCharacters(string text)
+        {
+            return HttpUtility.HtmlEncode(text);
         }
 
         private static string ReplaceSymbolOnSections(string text, Queue<string> codeSections, char symbol)
