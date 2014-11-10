@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Web;
 
 namespace Version_3
@@ -9,19 +7,23 @@ namespace Version_3
     public static class MarkdownParser
     {
         private const char SymbolRemplacementCodeSections = '©';
-       
+
         public static string ParseToHtml(string text)
         {
             if (text == null) throw new ArgumentNullException();
 
             text = ReplaceSpecialCharacters(text);
             var codeSections = MarkdownSections.GetCodeSections(text);
-            
-            text = ReplaceCodeSectionsOnSpecialChar(text, codeSections);
-             
+
+            text = MarkdownSections.ReplaceSectionsOnSpecialCharacter(text,
+                MarkdownSections.WrapSectionsInOriginalSeparator(codeSections, "`"), SymbolRemplacementCodeSections);
+
             var htmlTree = HtmlTreeBuilder.Build(text).ToString();
             htmlTree = ReplaceScreeningSections(htmlTree);
-            htmlTree = ReplaceSymbolOnSections(htmlTree, WrapCodeSectionsInTags(codeSections), SymbolRemplacementCodeSections);
+
+            htmlTree = MarkdownSections.ReplaceSymbolOnSections(htmlTree,
+                MarkdownSections.WrapSectionsInTag(codeSections, "code"), SymbolRemplacementCodeSections);
+
             return htmlTree;
         }
 
@@ -30,39 +32,10 @@ namespace Version_3
             return HttpUtility.HtmlEncode(text);
         }
 
-        private static string ReplaceSymbolOnSections(string text, Queue<string> codeSections, char symbol)
-        {
-            var result = new StringBuilder();
-            foreach (var c in text)
-            {
-                if (c == symbol)
-                {
-                    result.Append(codeSections.Dequeue());
-                }
-                else
-                {
-                    result.Append(c);
-                }
-            }
-
-            return result.ToString();
-        }
-
         private static string ReplaceScreeningSections(string text)
         {
             var screeningSections = MarkdownSections.GetSreeningSections(text);
             return screeningSections.Aggregate(text, (current, c) => current.Replace(c, c.Substring(1)));
-        }
-
-        private static string ReplaceCodeSectionsOnSpecialChar(string text, Queue<string> codeSections)
-        {
-            return codeSections.Aggregate(text, (current, c) => current.Replace(c, SymbolRemplacementCodeSections + ""));
-        }
-
-        private static Queue<string> WrapCodeSectionsInTags(Queue<string> codeSections)
-        {
-            return 
-                new Queue<string>(codeSections.Select(code => string.Format("<code>{0}</code>",code.Substring(1, code.Length - 2))));
         }
     }
 }

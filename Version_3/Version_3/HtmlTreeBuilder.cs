@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Version_3
@@ -11,29 +10,34 @@ namespace Version_3
 
         public static HtmlTree Build(string text)
         {
-            var root = new HtmlTreeNode(TypeNodeHtmlTree.Root, text);
-            AddParagraphsToRoot(root);
-            
+            var root = new HtmlTreeNode(TypeNodeHtmlTree.Root);
+            AddParagraphsToRoot(root, text);
+
             return new HtmlTree(root);
         }
 
-        private static void AddParagraphsToRoot(HtmlTreeNode root)
+        private static void AddParagraphsToRoot(HtmlTreeNode root, string rootContent)
         {
-            foreach (var paragraphContent in MarkdownSections.GetParagraphSections(root.Content))
+            foreach (var paragraphContent in MarkdownSections.GetParagraphSections(rootContent))
             {
-                var paragraph = new HtmlTreeNode(TypeNodeHtmlTree.Paragraph, paragraphContent);
+                var paragraph = new HtmlTreeNode(TypeNodeHtmlTree.Paragraph);
                 paragraph.AddChilds(GetNodeChilds(paragraphContent));
                 root.AddChild(paragraph);
             }
         }
-        
+
         private static IEnumerable<HtmlTreeNode> GetNodeChilds(string nodeContent)
         {
-            var emSections = MarkdownSections.GetEmSections(nodeContent);
-            nodeContent = ReplaceSectionsOnSpecialCharacter(nodeContent, WrapSectionsInOriginalSeparator(emSections, "_"), SymbolReplacementEmSections);
+            var emSections = new Queue<string>(MarkdownSections.GetEmSections(nodeContent));
 
-            var strongSections = MarkdownSections.GetStrongSections(nodeContent);
-            nodeContent = ReplaceSectionsOnSpecialCharacter(nodeContent, WrapSectionsInOriginalSeparator(strongSections, "__"), SymbolReplacementStrongSections);
+            nodeContent = MarkdownSections.ReplaceSectionsOnSpecialCharacter(nodeContent,
+                MarkdownSections.WrapSectionsInOriginalSeparator(emSections, "_"), SymbolReplacementEmSections);
+
+            var strongSections = new Queue<string>(MarkdownSections.GetStrongSections(nodeContent));
+
+            nodeContent = MarkdownSections.ReplaceSectionsOnSpecialCharacter(nodeContent,
+                MarkdownSections.WrapSectionsInOriginalSeparator(strongSections, "__"), SymbolReplacementStrongSections);
+
             var innerText = new StringBuilder();
 
             foreach (var character in nodeContent)
@@ -47,35 +51,26 @@ namespace Version_3
                     innerText.Clear();
 
                     HtmlTreeNode child;
+                    var content = string.Empty;
                     if (character == SymbolReplacementEmSections)
                     {
-                        var em = emSections.Dequeue();
-                        child = new HtmlTreeNode(TypeNodeHtmlTree.Em, em);
+                        content = emSections.Dequeue();
+                        child = new HtmlTreeNode(TypeNodeHtmlTree.Em);
                     }
                     else
                     {
-                        var strong = strongSections.Dequeue();
+                        content = strongSections.Dequeue();
 
-                        child = new HtmlTreeNode(TypeNodeHtmlTree.Strong, strong);
+                        child = new HtmlTreeNode(TypeNodeHtmlTree.Strong);
                     }
-                    child.AddChilds(GetNodeChilds(child.Content));
+
+                    child.AddChilds(GetNodeChilds(content));
                     yield return child;
                 }
             }
 
             if (innerText.Length != 0)
                 yield return new HtmlTreeNode(TypeNodeHtmlTree.Text, innerText.ToString());
-        }
-
-        private static IEnumerable<string> WrapSectionsInOriginalSeparator(IEnumerable<string> sections,
-           string originalSeparator)
-        {
-            return sections.Select(section => string.Format("{0}{1}{0}", originalSeparator, section));
-        }
-
-        private static string ReplaceSectionsOnSpecialCharacter(string text, IEnumerable<string> sections, char specialCharacter)
-        {
-            return sections.Aggregate(text, (current, c) => current.Replace(c, specialCharacter + ""));
         }
     }
 }

@@ -13,29 +13,24 @@ namespace Version_3
         private static readonly Regex StrongSections = new Regex(@"(?<![\\_\w])__(?!_)(((?!__).)*)__(?![\\_\w])");
         private static readonly Regex EmSections = new Regex(@"(?<![\\_\w])_(" + @"((_{2,}|[^_])|([a-zA-Zа-яА-Я0-9]+[_]+[a-zA-Zа-яА-Я0-9]+([_]+[a-zA-Zа-яА-Я0-9]+)*))+" + @")(?<!\\)_(?![_\w])");
 
-        public static Queue<string> GetSreeningSections(string text)
+        public static IEnumerable<string> GetSreeningSections(string text)
         {
-            return new Queue<string>(GetWordsMatchesRegex(text, ScreeningSections));
+            return GetWordsMatchesRegex(text, ScreeningSections);
         }
 
-        public static Queue<string> GetStrongSections(string text)
+        public static IEnumerable<string> GetStrongSections(string text)
         {
-            return new Queue<string>(GetWordsMatchesRegex(text, StrongSections).Select(i => CutExtremeCharactres(i, 2)));
+            return GetWordsMatchesRegex(text, StrongSections).Select(i => CutExtremeCharactresInSection(i, 2));
         }
 
-        public static Queue<string> GetEmSections(string text)
+        public static IEnumerable<string> GetEmSections(string text)
         {
-            return new Queue<string>(GetWordsMatchesRegex(text, EmSections).Select(i => CutExtremeCharactres(i, 1)));
+            return GetWordsMatchesRegex(text, EmSections).Select(i => CutExtremeCharactresInSection(i, 1));
         }
 
-        public static Queue<string> GetCodeSections(string text)
+        public static IEnumerable<string> GetCodeSections(string text)
         {
-            return new Queue<string>(GetWordsMatchesRegex(text, CodeSections));
-        }
-
-        private static string CutExtremeCharactres(string text, int count)
-        {
-            return text.Substring(0 + count, text.Length - 2 * count);
+            return GetWordsMatchesRegex(text, CodeSections).Select(i => CutExtremeCharactresInSection(i, 1));
         }
 
         public static IEnumerable<string> GetParagraphSections(string text)
@@ -45,15 +40,15 @@ namespace Version_3
             var usedItems = Enumerable.Range(0, lines.Count)
                                         .Select(i => false)
                                         .ToList();
-            
+
             for (var i = 0; i < lines.Count - 2; )
             {
                 var subset = lines.GetRange(i, 3);
                 var curIndex = i;
                 var paragraphAccumulated = false;
                 currentParagraph.Append(subset[0]);
-                
-                
+
+
                 if (string.IsNullOrEmpty(subset[1].Trim()))
                 {
                     paragraphAccumulated = true;
@@ -82,11 +77,51 @@ namespace Version_3
 
             var indexesUnusedItems =
                 usedItems.Select((i, j) => Tuple.Create(i, j)).Where(i => i.Item1 == false).Select(i => i.Item2).ToList();
-            
+
             foreach (var index in indexesUnusedItems)
                 currentParagraph.Append(lines[index]);
 
             yield return currentParagraph.ToString();
+        }
+
+        public static IEnumerable<string> WrapSectionsInOriginalSeparator(IEnumerable<string> sections,
+           string originalSeparator)
+        {
+            return sections.Select(section => string.Format("{0}{1}{0}", originalSeparator, section));
+        }
+
+        public static string ReplaceSectionsOnSpecialCharacter(string text, IEnumerable<string> sections, char specialCharacter)
+        {
+            return sections.Aggregate(text, (current, c) => current.Replace(c, specialCharacter + ""));
+        }
+
+        public static IEnumerable<string> WrapSectionsInTag(IEnumerable<string> sections, string tag)
+        {
+            return sections.Select(code => string.Format("<{0}>{1}</{0}>", tag, code));
+        }
+
+        public static string ReplaceSymbolOnSections(string text, IEnumerable<string> codeSections, char symbol)
+        {
+            var queueCodeSections = new Queue<string>(codeSections);
+            var result = new StringBuilder();
+            foreach (var c in text)
+            {
+                if (c == symbol)
+                {
+                    result.Append(queueCodeSections.Dequeue());
+                }
+                else
+                {
+                    result.Append(c);
+                }
+            }
+
+            return result.ToString();
+        }
+
+        private static string CutExtremeCharactresInSection(string text, int count)
+        {
+            return text.Substring(0 + count, text.Length - 2 * count);
         }
 
         private static IEnumerable<string> GetWordsMatchesRegex(string text, Regex regex)

@@ -12,7 +12,7 @@ namespace Version_3
 
         [Test]
         public static void throw_argument_null_exception_for_null()
-        { 
+        {
             Assert.That(() => MarkdownParser.ParseToHtml(null), Throws.Exception);
         }
 
