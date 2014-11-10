@@ -13,33 +13,31 @@ namespace Version_3
         private static readonly Regex StrongSections = new Regex(@"(?<![\\_\w])__(?!_)(((?!__).)*)__(?![\\_\w])");
         private static readonly Regex EmSections = new Regex(@"(?<![\\_\w])_(" + @"((_{2,}|[^_])|([a-zA-Zа-яА-Я0-9]+[_]+[a-zA-Zа-яА-Я0-9]+([_]+[a-zA-Zа-яА-Я0-9]+)*))+" + @")(?<!\\)_(?![_\w])");
 
-        public static IEnumerable<string> GetSreeningSections(string text)
+        public static IEnumerable<Section> GetSreeningSections(string text)
         {
-            return GetWordsMatchesRegex(text, ScreeningSections);
+            return GetWordsMatchesRegex(text, ScreeningSections).Select(section => new Section(section, ""));
         }
 
-        public static IEnumerable<string> GetStrongSections(string text)
+        public static IEnumerable<Section> GetStrongSections(string text)
         {
-            return GetWordsMatchesRegex(text, StrongSections).Select(i => CutExtremeCharactresInSection(i, 2));
+            return GetWordsMatchesRegex(text, StrongSections).Select(i => new Section(i, CutExtremeCharactresInText(i, 2)));
         }
 
-        public static IEnumerable<string> GetEmSections(string text)
+        public static IEnumerable<Section> GetEmSections(string text)
         {
-            return GetWordsMatchesRegex(text, EmSections).Select(i => CutExtremeCharactresInSection(i, 1));
+            return GetWordsMatchesRegex(text, EmSections).Select(i => new Section(i, CutExtremeCharactresInText(i, 1)));
         }
 
-        public static IEnumerable<string> GetCodeSections(string text)
+        public static IEnumerable<Section> GetCodeSections(string text)
         {
-            return GetWordsMatchesRegex(text, CodeSections).Select(i => CutExtremeCharactresInSection(i, 1));
+            return GetWordsMatchesRegex(text, CodeSections).Select(i => new Section(i, CutExtremeCharactresInText(i, 1)));
         }
 
-        public static IEnumerable<string> GetParagraphSections(string text)
+        public static IEnumerable<Section> GetParagraphSections(string text)
         {
             var lines = text.Split('\n').ToList();
             var currentParagraph = new StringBuilder();
-            var usedItems = Enumerable.Range(0, lines.Count)
-                                        .Select(i => false)
-                                        .ToList();
+            var usedItems = new bool[lines.Count];
 
             for (var i = 0; i < lines.Count - 2; )
             {
@@ -67,7 +65,7 @@ namespace Version_3
 
                 if (paragraphAccumulated)
                 {
-                    yield return currentParagraph.ToString();
+                    yield return new Section("", Regex.Replace(currentParagraph.ToString().Trim(), @"\s+", " "));
                     currentParagraph.Clear();
                 }
 
@@ -75,40 +73,38 @@ namespace Version_3
                     usedItems[j] = true;
             }
 
-            var indexesUnusedItems =
-                usedItems.Select((i, j) => Tuple.Create(i, j)).Where(i => i.Item1 == false).Select(i => i.Item2).ToList();
+            var indexesUnusedItems = usedItems
+                                                .Select((value, index) => Tuple.Create(value, index))
+                                                .Where(i => i.Item1 == false)
+                                                .Select(i => i.Item2)
+                                                .ToList();
 
             foreach (var index in indexesUnusedItems)
                 currentParagraph.Append(lines[index]);
+            
 
-            yield return currentParagraph.ToString();
+            yield return new Section("", Regex.Replace(currentParagraph.ToString().Trim(), @"\s+", " "));
         }
 
-        public static IEnumerable<string> WrapSectionsInOriginalSeparator(IEnumerable<string> sections,
-           string originalSeparator)
+        public static string ReplaceSectionsWithMarksOnSpecialCharacter(string text, IEnumerable<Section> sections, char specialCharacter)
         {
-            return sections.Select(section => string.Format("{0}{1}{0}", originalSeparator, section));
+            return sections.Aggregate(text, (current, c) => current.Replace(c.LineWithMarkers, specialCharacter + ""));
         }
 
-        public static string ReplaceSectionsOnSpecialCharacter(string text, IEnumerable<string> sections, char specialCharacter)
+        public static IEnumerable<Section> WrapSectionsWithoutMarksInTag(IEnumerable<Section> sections, string tag)
         {
-            return sections.Aggregate(text, (current, c) => current.Replace(c, specialCharacter + ""));
+            return sections.Select(code => new Section(code.LineWithMarkers, string.Format("<{0}>{1}</{0}>", tag, code.LineWithoutMarkers)));
         }
 
-        public static IEnumerable<string> WrapSectionsInTag(IEnumerable<string> sections, string tag)
+        public static string ReplaceSymbolOnSectionsWithoutMarks(string text, IEnumerable<Section> sections, char symbol)
         {
-            return sections.Select(code => string.Format("<{0}>{1}</{0}>", tag, code));
-        }
-
-        public static string ReplaceSymbolOnSections(string text, IEnumerable<string> codeSections, char symbol)
-        {
-            var queueCodeSections = new Queue<string>(codeSections);
+            var queueCodeSections = new Queue<Section>(sections);
             var result = new StringBuilder();
             foreach (var c in text)
             {
                 if (c == symbol)
                 {
-                    result.Append(queueCodeSections.Dequeue());
+                    result.Append(queueCodeSections.Dequeue().LineWithoutMarkers);
                 }
                 else
                 {
@@ -119,7 +115,13 @@ namespace Version_3
             return result.ToString();
         }
 
-        private static string CutExtremeCharactresInSection(string text, int count)
+        public static string ReplaceScreeningSections(string text)
+        {
+            var screeningSections = GetSreeningSections(text);
+            return screeningSections.Aggregate(text, (current, c) => current.Replace(c.LineWithMarkers, c.LineWithMarkers.Substring(1)));
+        }
+
+        private static string CutExtremeCharactresInText(string text, int count)
         {
             return text.Substring(0 + count, text.Length - 2 * count);
         }

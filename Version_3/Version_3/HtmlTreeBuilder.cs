@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Version_3
@@ -10,33 +11,29 @@ namespace Version_3
 
         public static HtmlTree Build(string text)
         {
-            var root = new HtmlTreeNode(TypeNodeHtmlTree.Root);
-            AddParagraphsToRoot(root, text);
+            var root = new HtmlTreeNode(TypeNodeHtmlTree.Root, BuildParagraphs(text));
 
             return new HtmlTree(root);
         }
 
-        private static void AddParagraphsToRoot(HtmlTreeNode root, string rootContent)
+        private static IEnumerable<HtmlTreeNode> BuildParagraphs(string rootContent)
         {
-            foreach (var paragraphContent in MarkdownSections.GetParagraphSections(rootContent))
-            {
-                var paragraph = new HtmlTreeNode(TypeNodeHtmlTree.Paragraph);
-                paragraph.AddChilds(GetNodeChilds(paragraphContent));
-                root.AddChild(paragraph);
-            }
+            return MarkdownSections.GetParagraphSections(rootContent)
+                .Select(paragraphContent =>
+                    new HtmlTreeNode(TypeNodeHtmlTree.Paragraph, BuildNodeChilds(paragraphContent.LineWithoutMarkers)));
         }
 
-        private static IEnumerable<HtmlTreeNode> GetNodeChilds(string nodeContent)
+        private static IEnumerable<HtmlTreeNode> BuildNodeChilds(string nodeContent)
         {
-            var emSections = new Queue<string>(MarkdownSections.GetEmSections(nodeContent));
+            var emSections = new Queue<Section>(MarkdownSections.GetEmSections(nodeContent));
 
-            nodeContent = MarkdownSections.ReplaceSectionsOnSpecialCharacter(nodeContent,
-                MarkdownSections.WrapSectionsInOriginalSeparator(emSections, "_"), SymbolReplacementEmSections);
+            nodeContent = MarkdownSections.ReplaceSectionsWithMarksOnSpecialCharacter(nodeContent,
+                emSections, SymbolReplacementEmSections);
 
-            var strongSections = new Queue<string>(MarkdownSections.GetStrongSections(nodeContent));
+            var strongSections = new Queue<Section>(MarkdownSections.GetStrongSections(nodeContent));
 
-            nodeContent = MarkdownSections.ReplaceSectionsOnSpecialCharacter(nodeContent,
-                MarkdownSections.WrapSectionsInOriginalSeparator(strongSections, "__"), SymbolReplacementStrongSections);
+            nodeContent = MarkdownSections.ReplaceSectionsWithMarksOnSpecialCharacter(nodeContent,
+                strongSections, SymbolReplacementStrongSections);
 
             var innerText = new StringBuilder();
 
@@ -48,23 +45,21 @@ namespace Version_3
                 {
                     if (innerText.Length != 0)
                         yield return new HtmlTreeNode(TypeNodeHtmlTree.Text, innerText.ToString());
+
                     innerText.Clear();
 
                     HtmlTreeNode child;
-                    var content = string.Empty;
                     if (character == SymbolReplacementEmSections)
                     {
-                        content = emSections.Dequeue();
-                        child = new HtmlTreeNode(TypeNodeHtmlTree.Em);
+                        var emSection = emSections.Dequeue().LineWithoutMarkers;
+                        child = new HtmlTreeNode(TypeNodeHtmlTree.Em, BuildNodeChilds(emSection));
                     }
                     else
                     {
-                        content = strongSections.Dequeue();
-
-                        child = new HtmlTreeNode(TypeNodeHtmlTree.Strong);
+                        var strongSection = strongSections.Dequeue().LineWithoutMarkers;
+                        child = new HtmlTreeNode(TypeNodeHtmlTree.Strong, BuildNodeChilds(strongSection));
                     }
 
-                    child.AddChilds(GetNodeChilds(content));
                     yield return child;
                 }
             }

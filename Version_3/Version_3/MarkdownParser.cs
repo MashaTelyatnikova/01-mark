@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Web;
 
 namespace Version_3
@@ -15,14 +14,14 @@ namespace Version_3
             text = ReplaceSpecialCharacters(text);
             var codeSections = MarkdownSections.GetCodeSections(text);
 
-            text = MarkdownSections.ReplaceSectionsOnSpecialCharacter(text,
-                MarkdownSections.WrapSectionsInOriginalSeparator(codeSections, "`"), SymbolRemplacementCodeSections);
+            text = MarkdownSections.ReplaceSectionsWithMarksOnSpecialCharacter(text,
+                codeSections, SymbolRemplacementCodeSections);
 
             var htmlTree = HtmlTreeBuilder.Build(text).ToString();
-            htmlTree = ReplaceScreeningSections(htmlTree);
+            htmlTree = MarkdownSections.ReplaceScreeningSections(htmlTree);
 
-            htmlTree = MarkdownSections.ReplaceSymbolOnSections(htmlTree,
-                MarkdownSections.WrapSectionsInTag(codeSections, "code"), SymbolRemplacementCodeSections);
+            htmlTree = MarkdownSections.ReplaceSymbolOnSectionsWithoutMarks(htmlTree,
+                MarkdownSections.WrapSectionsWithoutMarksInTag(codeSections, "code"), SymbolRemplacementCodeSections);
 
             return htmlTree;
         }
@@ -30,12 +29,6 @@ namespace Version_3
         private static string ReplaceSpecialCharacters(string text)
         {
             return HttpUtility.HtmlEncode(text);
-        }
-
-        private static string ReplaceScreeningSections(string text)
-        {
-            var screeningSections = MarkdownSections.GetSreeningSections(text);
-            return screeningSections.Aggregate(text, (current, c) => current.Replace(c, c.Substring(1)));
         }
     }
 }

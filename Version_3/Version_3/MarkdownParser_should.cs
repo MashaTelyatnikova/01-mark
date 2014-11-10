@@ -25,18 +25,30 @@ namespace Version_3
         [TestCase("Hello, World!", "<body><p>Hello, World!</p></body>")]
         [TestCase("Hello!\n\t    \nWorld!", "<body><p>Hello!</p><p>World!</p></body>")]
         [TestCase("Hello!\n\n\n\nWorld.", "<body><p>Hello!</p><p></p><p>World.</p></body>")]
-        [TestCase("Hello!\nwww\nlala\n\nWorld!", "<body><p>Hello!\nwww\nlala</p><p>World!</p></body>")]
-        [TestCase("Hello\n\t\t  \n   world!\n\n\n\n\n\nlalala\n", "<body><p>Hello</p><p>   world!</p><p></p><p></p><p>lalala</p></body>")]
+        [TestCase("Hello\n\t\t  \n   world!\n\n\n\n\n\nlalala\n", "<body><p>Hello</p><p>world!</p><p></p><p></p><p>lalala</p></body>")]
         public static void return_few_paragraphs_for_simple_lines(string input, string expected)
         {
             Test(input, expected);
         }
 
+        [TestCase("Hello\n\n\nworld!   \n", "<body><p>Hello</p><p>world!</p></body>")]
+        [TestCase("     Hello\n\nworld\n\t", "<body><p>Hello</p><p>world</p></body>")]
+        public static void removes_all_leading_and_trailing_spaces_in_paragraphs(string input, string expected)
+        {
+            Test(input, expected);
+        }
+
+        [TestCase("Hello            world  \t\t!", "<body><p>Hello world !</p></body>")]
+        [TestCase("Hello!\nwww\nlala\n\nWorld!", "<body><p>Hello! www lala</p><p>World!</p></body>")]
+        public static void trim_internal_spaces_of_paragraph_to_single_space(string input, string expected)
+        {
+            Test(input, expected);
+        }
         [TestCase("Masha _Telyatnikova lalal_", "<body><p>Masha <em>Telyatnikova lalal</em></p></body>")]
         [TestCase("lalaal _la_ dk", "<body><p>lalaal <em>la</em> dk</p></body>")]
         [TestCase("_hahaha_", "<body><p><em>hahaha</em></p></body>")]
-        [TestCase(" _hahah_ ", "<body><p> <em>hahah</em> </p></body>")]
-        [TestCase(" _hahah_", "<body><p> <em>hahah</em></p></body>")]
+        [TestCase(" _hahah_ ", "<body><p><em>hahah</em></p></body>")]
+        [TestCase(" _hahah_", "<body><p><em>hahah</em></p></body>")]
         public static void wrap_em_text_surrounded_by_underlines(string input, string expected)
         {
             Test(input, expected);
@@ -53,8 +65,8 @@ namespace Version_3
 
         [TestCase("Hello, __world__ my name is Masha", "<body><p>Hello, <strong>world</strong> my name is Masha</p></body>")]
         [TestCase("__Hello__", "<body><p><strong>Hello</strong></p></body>")]
-        [TestCase(" __Hello__", "<body><p> <strong>Hello</strong></p></body>")]
-        [TestCase("  __Hello__  ", "<body><p>  <strong>Hello</strong>  </p></body>")]
+        [TestCase(" __Hello__", "<body><p><strong>Hello</strong></p></body>")]
+        [TestCase("  __Hello__  ", "<body><p><strong>Hello</strong></p></body>")]
         [TestCase("__s _ss s__ _sdk l_", "<body><p><strong>s _ss s</strong> <em>sdk l</em></p></body>")]
         public static void wrap_strong_text_surrounded_by_double_underlines(string input, string expected)
         {
@@ -71,7 +83,7 @@ namespace Version_3
         [TestCase("Hello, `world my name `.", "<body><p>Hello, <code>world my name </code>.</p></body>")]
         [TestCase("`Hi`", "<body><p><code>Hi</code></p></body>")]
         [TestCase("lalal `code _my code_ __mmm__ _p __l__ k_` aaa", "<body><p>lalal <code>code _my code_ __mmm__ _p __l__ k_</code> aaa</p></body>")]
-        [TestCase("mamamam `code \n\t\t\n lalala` code\n \n papa", "<body><p>mamamam <code>code \n\t\t\n lalala</code> code</p><p> papa</p></body>")]
+        [TestCase("mamamam `code \n\t\t\n lalala` code\n \n papa", "<body><p>mamamam <code>code \n\t\t\n lalala</code> code</p><p>papa</p></body>")]
         public static void wrap_code_text_surrounded_by_backticks(string input, string expected)
         {
             Test(input, expected);

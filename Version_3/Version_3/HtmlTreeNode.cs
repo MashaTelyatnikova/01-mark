@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Version_3
@@ -17,21 +18,11 @@ namespace Version_3
             childs = new List<HtmlTreeNode>();
         }
 
-        public HtmlTreeNode(TypeNodeHtmlTree type)
+        public HtmlTreeNode(TypeNodeHtmlTree type, IEnumerable<HtmlTreeNode> childs)
         {
             this.type = type;
             content = string.Empty;
-            childs = new List<HtmlTreeNode>();
-        }
-
-        public void AddChild(HtmlTreeNode child)
-        {
-            childs.Add(child);
-        }
-
-        public void AddChilds(IEnumerable<HtmlTreeNode> childsNodes)
-        {
-            childs.AddRange(childsNodes);
+            this.childs = childs.ToList();
         }
 
         public override string ToString()
