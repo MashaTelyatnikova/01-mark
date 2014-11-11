@@ -10,5 +10,11 @@
             LineWithMarkers = lineWithMarkers;
             LineWithoutMarkers = lineWithoutMarkers;
         }
+
+        public Section WrapInTag(string tag)
+        {
+            return new Section(string.Format("<{0}>{1}</{0}>", tag, LineWithMarkers),
+                string.Format("<{0}>{1}</{0}>", tag, LineWithoutMarkers));
+        }
     }
 }

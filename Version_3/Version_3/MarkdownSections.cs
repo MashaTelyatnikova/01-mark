@@ -37,15 +37,13 @@ namespace Version_3
         {
             var lines = text.Split('\n').ToList();
             var currentParagraph = new StringBuilder();
-            var usedItems = new bool[lines.Count];
 
-            for (var i = 0; i < lines.Count - 2; )
+            var i = 0;
+            while (i < lines.Count - 2)
             {
                 var subset = lines.GetRange(i, 3);
-                var curIndex = i;
                 var paragraphAccumulated = false;
                 currentParagraph.Append(subset[0]);
-
 
                 if (string.IsNullOrEmpty(subset[1].Trim()))
                 {
@@ -63,40 +61,34 @@ namespace Version_3
                     i += 1;
                 }
 
-                if (paragraphAccumulated)
-                {
-                    yield return new Section("", Regex.Replace(currentParagraph.ToString().Trim(), @"\s+", " "));
-                    currentParagraph.Clear();
-                }
+                if (!paragraphAccumulated) continue;
 
-                for (var j = curIndex; j < i; j++)
-                    usedItems[j] = true;
+                yield return new Section("", CutExtraSpacesInParagraphSection(currentParagraph.ToString()));
+                currentParagraph.Clear();
             }
 
-            var indexesUnusedItems = usedItems
-                                                .Select((value, index) => Tuple.Create(value, index))
-                                                .Where(i => i.Item1 == false)
-                                                .Select(i => i.Item2)
-                                                .ToList();
+            for (var j = i; j < lines.Count; ++j)
+                currentParagraph.Append(lines[j]);
 
-            foreach (var index in indexesUnusedItems)
-                currentParagraph.Append(lines[index]);
-            
-
-            yield return new Section("", Regex.Replace(currentParagraph.ToString().Trim(), @"\s+", " "));
+            yield return new Section("", CutExtraSpacesInParagraphSection(currentParagraph.ToString()));
         }
 
-        public static string ReplaceSectionsWithMarksOnSpecialCharacter(string text, IEnumerable<Section> sections, char specialCharacter)
+        private static string CutExtraSpacesInParagraphSection(string paragraph)
+        {
+            return Regex.Replace(paragraph.Trim(), @"\s+", " ");
+        }
+
+        public static string ReplaceSectionsWithMarkersOnSpecialCharacter(string text, IEnumerable<Section> sections, char specialCharacter)
         {
             return sections.Aggregate(text, (current, c) => current.Replace(c.LineWithMarkers, specialCharacter + ""));
         }
 
-        public static IEnumerable<Section> WrapSectionsWithoutMarksInTag(IEnumerable<Section> sections, string tag)
+        public static IEnumerable<Section> WrapSectionsInTag(IEnumerable<Section> sections, string tag)
         {
-            return sections.Select(code => new Section(code.LineWithMarkers, string.Format("<{0}>{1}</{0}>", tag, code.LineWithoutMarkers)));
+            return sections.Select(section => section.WrapInTag(tag));
         }
 
-        public static string ReplaceSymbolOnSectionsWithoutMarks(string text, IEnumerable<Section> sections, char symbol)
+        public static string ReplaceSymbolOnLineSectionsWithoutMarkers(string text, IEnumerable<Section> sections, char symbol)
         {
             var queueCodeSections = new Queue<Section>(sections);
             var result = new StringBuilder();
@@ -130,7 +122,6 @@ namespace Version_3
         {
             var result = regex.Matches(text);
             return from object v in result where !string.IsNullOrEmpty(v.ToString()) select v.ToString();
-
         }
     }
 }

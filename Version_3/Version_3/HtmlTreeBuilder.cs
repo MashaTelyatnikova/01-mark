@@ -27,12 +27,12 @@ namespace Version_3
         {
             var emSections = new Queue<Section>(MarkdownSections.GetEmSections(nodeContent));
 
-            nodeContent = MarkdownSections.ReplaceSectionsWithMarksOnSpecialCharacter(nodeContent,
+            nodeContent = MarkdownSections.ReplaceSectionsWithMarkersOnSpecialCharacter(nodeContent,
                 emSections, SymbolReplacementEmSections);
 
             var strongSections = new Queue<Section>(MarkdownSections.GetStrongSections(nodeContent));
 
-            nodeContent = MarkdownSections.ReplaceSectionsWithMarksOnSpecialCharacter(nodeContent,
+            nodeContent = MarkdownSections.ReplaceSectionsWithMarkersOnSpecialCharacter(nodeContent,
                 strongSections, SymbolReplacementStrongSections);
 
             var innerText = new StringBuilder();

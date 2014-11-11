@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Web;
 
 namespace Version_3
@@ -14,14 +15,14 @@ namespace Version_3
             text = ReplaceSpecialCharacters(text);
             var codeSections = MarkdownSections.GetCodeSections(text);
 
-            text = MarkdownSections.ReplaceSectionsWithMarksOnSpecialCharacter(text,
+            text = MarkdownSections.ReplaceSectionsWithMarkersOnSpecialCharacter(text,
                 codeSections, SymbolRemplacementCodeSections);
 
             var htmlTree = HtmlTreeBuilder.Build(text).ToString();
             htmlTree = MarkdownSections.ReplaceScreeningSections(htmlTree);
 
-            htmlTree = MarkdownSections.ReplaceSymbolOnSectionsWithoutMarks(htmlTree,
-                MarkdownSections.WrapSectionsWithoutMarksInTag(codeSections, "code"), SymbolRemplacementCodeSections);
+            htmlTree = MarkdownSections.ReplaceSymbolOnLineSectionsWithoutMarkers(htmlTree,
+                MarkdownSections.WrapSectionsInTag(codeSections, "code"), SymbolRemplacementCodeSections);
 
             return htmlTree;
         }
