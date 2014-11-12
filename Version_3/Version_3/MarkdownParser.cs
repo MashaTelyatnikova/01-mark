@@ -12,7 +12,7 @@ namespace Version_3
         {
             if (text == null) throw new ArgumentNullException();
 
-            text = ReplaceSpecialCharacters(text);
+            text = HttpUtility.HtmlEncode(text);
             var codeSections = MarkdownSections.GetCodeSections(text);
 
             text = MarkdownSections.ReplaceSectionsWithMarkersOnSpecialCharacter(text,
@@ -21,15 +21,10 @@ namespace Version_3
             var htmlTree = HtmlTreeBuilder.Build(text).ToString();
             htmlTree = MarkdownSections.ReplaceScreeningSections(htmlTree);
 
-            htmlTree = MarkdownSections.ReplaceSymbolOnLineSectionsWithoutMarkers(htmlTree,
-                MarkdownSections.WrapSectionsInTag(codeSections, "code"), SymbolRemplacementCodeSections);
+            htmlTree = MarkdownSections.ReplaceSymbolOnContentSections(htmlTree,
+                MarkdownSections.WrapContentSectionsInTag(codeSections, "code"), SymbolRemplacementCodeSections);
 
             return htmlTree;
-        }
-
-        private static string ReplaceSpecialCharacters(string text)
-        {
-            return HttpUtility.HtmlEncode(text);
         }
     }
 }

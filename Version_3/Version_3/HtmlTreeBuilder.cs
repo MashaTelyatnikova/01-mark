@@ -20,7 +20,7 @@ namespace Version_3
         {
             return MarkdownSections.GetParagraphSections(rootContent)
                 .Select(paragraphContent =>
-                    new HtmlTreeNode(TypeNodeHtmlTree.Paragraph, BuildNodeChilds(paragraphContent.LineWithoutMarkers)));
+                    new HtmlTreeNode(TypeNodeHtmlTree.Paragraph, BuildNodeChilds(paragraphContent.Content)));
         }
 
         private static IEnumerable<HtmlTreeNode> BuildNodeChilds(string nodeContent)
@@ -51,12 +51,12 @@ namespace Version_3
                     HtmlTreeNode child;
                     if (character == SymbolReplacementEmSections)
                     {
-                        var emSection = emSections.Dequeue().LineWithoutMarkers;
+                        var emSection = emSections.Dequeue().Content;
                         child = new HtmlTreeNode(TypeNodeHtmlTree.Em, BuildNodeChilds(emSection));
                     }
                     else
                     {
-                        var strongSection = strongSections.Dequeue().LineWithoutMarkers;
+                        var strongSection = strongSections.Dequeue().Content;
                         child = new HtmlTreeNode(TypeNodeHtmlTree.Strong, BuildNodeChilds(strongSection));
                     }
 

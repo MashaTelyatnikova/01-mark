@@ -83,12 +83,12 @@ namespace Version_3
             return sections.Aggregate(text, (current, c) => current.Replace(c.LineWithMarkers, specialCharacter + ""));
         }
 
-        public static IEnumerable<Section> WrapSectionsInTag(IEnumerable<Section> sections, string tag)
+        public static IEnumerable<Section> WrapContentSectionsInTag(IEnumerable<Section> sections, string tag)
         {
-            return sections.Select(section => section.WrapInTag(tag));
+            return sections.Select(section => section.WrapContentInTag(tag));
         }
 
-        public static string ReplaceSymbolOnLineSectionsWithoutMarkers(string text, IEnumerable<Section> sections, char symbol)
+        public static string ReplaceSymbolOnContentSections(string text, IEnumerable<Section> sections, char symbol)
         {
             var queueCodeSections = new Queue<Section>(sections);
             var result = new StringBuilder();
@@ -96,7 +96,7 @@ namespace Version_3
             {
                 if (c == symbol)
                 {
-                    result.Append(queueCodeSections.Dequeue().LineWithoutMarkers);
+                    result.Append(queueCodeSections.Dequeue().Content);
                 }
                 else
                 {

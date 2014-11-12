@@ -3,18 +3,17 @@
     public class Section
     {
         public string LineWithMarkers { get; private set; }
-        public string LineWithoutMarkers { get; private set; }
+        public string Content { get; private set; }
 
-        public Section(string lineWithMarkers, string lineWithoutMarkers)
+        public Section(string lineWithMarkers, string content)
         {
             LineWithMarkers = lineWithMarkers;
-            LineWithoutMarkers = lineWithoutMarkers;
+            Content = content;
         }
 
-        public Section WrapInTag(string tag)
+        public Section WrapContentInTag(string tag)
         {
-            return new Section(string.Format("<{0}>{1}</{0}>", tag, LineWithMarkers),
-                string.Format("<{0}>{1}</{0}>", tag, LineWithoutMarkers));
+            return new Section(LineWithMarkers, string.Format("<{0}>{1}</{0}>", tag, Content));
         }
     }
 }
