@@ -83,20 +83,15 @@ namespace Version_3
             return sections.Aggregate(text, (current, c) => current.Replace(c.LineWithMarkers, specialCharacter + ""));
         }
 
-        public static IEnumerable<Section> WrapContentSectionsInTag(IEnumerable<Section> sections, string tag)
+        public static string ReplaceSymbolOnContentSections(string text, IEnumerable<string> contentSections, char symbol)
         {
-            return sections.Select(section => section.WrapContentInTag(tag));
-        }
-
-        public static string ReplaceSymbolOnContentSections(string text, IEnumerable<Section> sections, char symbol)
-        {
-            var queueCodeSections = new Queue<Section>(sections);
+            var queueCodeSections = new Queue<string>(contentSections);
             var result = new StringBuilder();
             foreach (var c in text)
             {
                 if (c == symbol)
                 {
-                    result.Append(queueCodeSections.Dequeue().Content);
+                    result.Append(queueCodeSections.Dequeue());
                 }
                 else
                 {

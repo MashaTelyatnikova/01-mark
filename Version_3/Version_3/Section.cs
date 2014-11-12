@@ -11,9 +11,9 @@
             Content = content;
         }
 
-        public Section WrapContentInTag(string tag)
+        public string WrapInTag(string tag)
         {
-            return new Section(LineWithMarkers, string.Format("<{0}>{1}</{0}>", tag, Content));
+            return string.Format("<{0}>{1}</{0}>", tag, Content);
         }
     }
 }

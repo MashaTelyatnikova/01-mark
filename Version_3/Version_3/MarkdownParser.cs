@@ -22,7 +22,7 @@ namespace Version_3
             htmlTree = MarkdownSections.ReplaceScreeningSections(htmlTree);
 
             htmlTree = MarkdownSections.ReplaceSymbolOnContentSections(htmlTree,
-                MarkdownSections.WrapContentSectionsInTag(codeSections, "code"), SymbolRemplacementCodeSections);
+                codeSections.Select(code => code.WrapInTag("code")), SymbolRemplacementCodeSections);
 
             return htmlTree;
         }
